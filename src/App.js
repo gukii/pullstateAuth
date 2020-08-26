@@ -1,26 +1,32 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import AuthContextProvider from "./auth/contexts/AuthContext";    // for cognito authentication (context)
+
+//import PrivateHome from './components/privateHome'
+//import RouterComponent from './auth/routerWithConfig'
+import RouterComponent from './auth/router'
+
+//import CodeSplitRouterTest from './components/codeSplitRouterTest'
+
+// for showing dialogs and prompts
+import { PsRenderDialog } from './auth/containers/modalPortal/modalPortal'
+
 
 function App() {
   return (
+
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <AuthContextProvider>
+
+          <PsRenderDialog />
+
+          <RouterComponent />
+
+      </AuthContextProvider>
     </div>
   );
 }
 
 export default App;
+
+//       <PrivateHome jwtToken='ok' otherVar='34' />
