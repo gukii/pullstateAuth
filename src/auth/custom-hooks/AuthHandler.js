@@ -11,6 +11,11 @@ import { EMPTY_USER_AUTH } from "../cognito/config";
 import { setUnauthStatus as psSetUnauthStatus } from "./psAuthHandler"
 
 
+// !!!!
+// functionality is replicated in psAuthHandler.js
+// keeping this while transitioning from context to pullstate, which will be removing context all together
+
+
 const useAuthHandler = (initialState) => {
 
   const [auth, setAuth] = React.useState(initialState);
