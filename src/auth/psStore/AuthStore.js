@@ -10,7 +10,7 @@ export const AuthStore = new Store({
     username: null,
     userId: null,
 
-    auth: EMPTY_USER_AUTH,
+    auth: EMPTY_USER_AUTH,  // currently mostly dealing with this one, as refactoring from context to pullstate
 
     userAccountVerified: false,
     attributeVerified: false,

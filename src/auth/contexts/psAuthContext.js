@@ -1,12 +1,8 @@
 import React, { useEffect } from "react";
-/*
-import {
-    CognitoUser,
-    CognitoRefreshToken,
-  } from "amazon-cognito-identity-js";
-*/
-// used by authentication components
 
+// REFACTORING AWAY FROM CONTEXT TO PULLSTATE..
+// NEED TO FIGURE OUT A WAY TO IMPLEMENT 
+// USE-EFFECT STUFF WITH PULLSTATE SUBSCRIPTION OR REACTIONS
 
 
 /** Custom types */
@@ -14,6 +10,8 @@ import {
 
 /** Custom Hooks */
 import useAuthHandler from "../custom-hooks/AuthHandler";
+//import useAuthHandler from "../custom-hooks/psAuthHandler";
+
 import { showExpirationTime } from '../cognito/showExpirationTime'
 import { connRenewSessionAsync } from '../connectedHelpers/connRenewSession'
 import msUntilCognitoTS from '../cognito/msUntilCognitoTS'
@@ -116,7 +114,8 @@ const AuthProvider = function({ children }) {
 
 
 
-  // bringing in the state from pullState,.. 
+  // "hack" to bring in the state from pullState into the context (to ensure the rest of the code works)
+  // next step will refactor context to pullstate completely, retiring this function.
   useEffect(() => {
     
     console.log('AuthStore subscription ON')
@@ -132,7 +131,7 @@ const AuthProvider = function({ children }) {
 
       unsubscribeFromAuth();
     };
-  }, []);
+  }, [setAuthStatus]);
 
 
 

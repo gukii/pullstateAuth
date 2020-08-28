@@ -128,6 +128,7 @@ const SignInForm = function() {
       //storeUserAuth(userAuth)
       //AuthStore.update(s => { s.auth = newAuthObj })
 
+      // could also set s.authenticated = true
       AuthStore.update([ s => s.username = username, s => s.userId = sess.idToken.payload.sub ])
 
       console.log('setUserId:', sess.idToken.payload.sub)
@@ -148,7 +149,15 @@ const SignInForm = function() {
       console.log('connSignInAsync doSignIn called with username/password:', username, password)
 
       if (username==='' || password === '') {
-        alert('Enter a username and password!')
+        //alert('Enter a username and password!')
+        await psDialogAsync({ 
+          component: SimpleDialog, 
+          title:"Please enter a password", 
+          //text:"User sign in not possible. Try again next time.", 
+          submitLabel:"Ok", 
+          rejectVal:"", 
+          alwaysResolve: true 
+        })           
         return null
       }
 
@@ -198,7 +207,7 @@ const SignInForm = function() {
                 //alert("Confirmation code not entered")
                 await psDialogAsync({ 
                   component: SimpleDialog, 
-                  title:"Confirmation Code not enetered", 
+                  title:"Confirmation Code not entered", 
                   text:"User sign in not possible. Try again next time.", 
                   submitLabel:"Ok", 
                   rejectVal:"", 
@@ -311,6 +320,9 @@ const SignInForm = function() {
   return (
     <div>
 
+      { loading && <div className="loader centered"/> }      
+      
+
       <form
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
         onSubmit={ async e => {
@@ -395,4 +407,19 @@ export default SignInForm;
           />
         </FormGroup>
 
+
+
+
+
+
+
+
+      { loading && <>
+        <div className="animate-spin h-5 w-5 mr-3">ss</div>
+        <span class="flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+        </span>        
+        Loading...
+      </>  }        
 */

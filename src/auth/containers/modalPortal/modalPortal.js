@@ -112,16 +112,17 @@ export function Modal({ isOpen=true,
           backgroundColor: "rgba(0,0,0,0.6)"
         }}
       >
-        <div          
-        style={{
-          padding: "20%",
-        }}>
+        <div    
+          className="fadeDown"    
+          style={{
+            padding: "20%",
+          }}
+        >
 
-          <div  ref={modalRef} 
+          <div  ref={modalRef}
                 style={{
                   width: "100%",
                   background: "gray",
-
                 }}>
           
             { closeFn !== null &&
@@ -300,7 +301,7 @@ export function SimplePrompt({  resolve, reject, onCancel, onClose, rejectVal=nu
         field={in1} 
         setField={setIn1} 
         type={inputType} 
-        placeHolder={placeHolder} 
+        placeholder={placeHolder} 
       />
       <br/>
       <button onClick={ doSubmit }>{submitLabel}</button>
@@ -332,7 +333,7 @@ export function PsRenderDialog(htmlID="modal-portal") {
  
   if (!isOpen) return null
   
-  return ( isOpen &&  
+  return ( //isOpen && 
     <Modal  isOpen={ isOpen } 
             closeFn={ onCancel } 
             portalRoot={ portalRoot }

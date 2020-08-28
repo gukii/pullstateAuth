@@ -2,8 +2,9 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { Redirect } from "react-router";
 
+import { AuthStore } from "../psStore/AuthStore";
+import { setUnauthStatus } from '../custom-hooks/psAuthHandler'
 
-import { authContext } from "../auth/contexts/AuthContext";
 import { R } from '../auth/routeNames' // only used for default value of authFailRoute, could be set to '/'
 //import { EMPTY_USER_AUTH } from '../auth/cognito/config'
 //import { getStoredUserAuth } from '../auth/cognito/localStorage'
@@ -14,18 +15,9 @@ import { R } from '../auth/routeNames' // only used for default value of authFai
 import SignOut from '../auth/containers/signOut'
 const withAuth = Component => props => {
 
-  const {
-    auth,
-    /* openConfirmationCodeModal,
-    setUsername,
-    setUserId,
-    setTimestamp,
-    renewSession,
-    setAuthStatus,*/
-    setUnauthStatus,
-  } = React.useContext(authContext);
-
-
+  const auth = AuthStore.useState(s => s.auth)
+  //const authenticated = AuthStore.useState(s => s.authenticated)
+  //const authenticated = AuthStore.useState(s => s.auth.authenticated)  // could use this one as well, but might not reflect timed-out jwt tokens
 
 
   const { authFailRoute=R.SIGNIN_ROUTE } = props
