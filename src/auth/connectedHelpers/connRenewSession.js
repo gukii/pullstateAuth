@@ -24,7 +24,7 @@ import { connNewCognitoUser, connGetCognitoUsername } from './connCognitoUser'
 export async function connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username=null, auth, setUsername=null, forceUpdate=false, log="initialValue" }) {
 
       if (log.length > 0) console.log(`connRenewSession, log: ${log}`)
-      
+
       if (!!!auth.refreshToken || (!!auth.refreshToken && auth.refreshToken.length === 0)) {
         console.log('connRenewSessionAsync has no refreshToken, returning null', auth)
         setUnauthStatus({ keepUsername: false, log: "renewSession, refreshSessionAsync has no refreshToken" })
@@ -55,34 +55,6 @@ export async function connRenewSessionAsync({ setUnauthStatus, setAuthStatus, us
       // renew session before it expires
       if ( (timerDuration < ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION*1000) || forceUpdate) {
 
-
-        /*
-        const _username = username || getStoredUsername()
-        console.log(`>> renewSession auth.username:${auth.username}, username:${username}, _username:${_username}`)
-        if (_username === null) {
-          setUnauthStatus({ keepUsername: true, log: "renewSession, username is null" })
-          return null
-        }
-
-        // could do: setUsername(_username)
-
-        console.log('>> renewSession: ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION, secs:', ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION)
-        console.log('>> renewSession: username:', _username)   // has no value..
-
-
-        const userData = {
-          Username: _username,
-          Pool:  getUserPool(),
-        }
-
-        const _cognitoUser = new CognitoUser(userData);
-
-        if (_cognitoUser === null) {
-          console.log('!!! renewSession: ERROR couldnt get cognitoUser, returning early in AuthContext..')
-          setUnauthStatus({ keepUsername: true, log: "renewSession, cognitoUser error" })
-          return null
-        }
-        */
 
         const _username = connGetCognitoUsername({ setUnauthStatus, username, log:"for connRenewSession username" })
         if (_username === null) return null

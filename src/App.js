@@ -26,4 +26,3 @@ function App() {
 
 export default App;
 
-//       <PrivateHome jwtToken='ok' otherVar='34' />
