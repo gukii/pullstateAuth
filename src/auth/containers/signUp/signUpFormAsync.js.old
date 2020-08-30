@@ -5,14 +5,15 @@ import * as validator from "validator"
 
 /** Presentation/UI */
 //import { SignUpContainer } from "../../../AppStyles.styles.tw";
-//import ErrorMessage from "../../components/ErrorMessage";
+import ErrorMessage from "../../errorMessage";
+
 
 /** Custom Hooks */
 import useErrorHandler from "../../custom-hooks/ErrorHandler";
 
 
 
-import { authContext } from "../../contexts/AuthContext";
+//import { authContext } from "../../contexts/AuthContextNoPs";
 //import { getValuesFromSession } from '../../cognito/config'
 
 import { useHistory, useLocation } from 'react-router-dom';  // added by chris, probably not the best place to put this..
@@ -417,9 +418,9 @@ const SignUpForm = function() {
           Sign In
         </button>
 
-        { error && <div>Error: {error}</div>  }
+        { /* error && <div>Error: {error}</div> */  }
 
-        { /*error && <ErrorMessage errorMessage={error} /> */ }
+        { error && <ErrorMessage errorMessage={error} />  }
 
       </form>
     </div>

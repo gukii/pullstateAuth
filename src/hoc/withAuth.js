@@ -2,8 +2,9 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { Redirect } from "react-router";
 
+import { AuthStore } from "../auth/psStore/AuthStore";
+import { setUnauthStatus } from '../auth/connectedHelpers/authHelper'
 
-import { authContext } from "../auth/contexts/AuthContext";
 import { R } from '../auth/routeNames' // only used for default value of authFailRoute, could be set to '/'
 //import { EMPTY_USER_AUTH } from '../auth/cognito/config'
 //import { getStoredUserAuth } from '../auth/cognito/localStorage'
@@ -12,20 +13,35 @@ import { R } from '../auth/routeNames' // only used for default value of authFai
 
 
 import SignOut from '../auth/containers/signOut'
+
+
+
+
+/*
+import { AuthStore } from "../auth/psStore/AuthStore";
+
+
+console.log('withAuth outside..')
+
+// reacts to changes of auth.. 
+function authReactor() {
+
+  const unsubscribeReaction = AuthStore.createReaction(s => s.auth, (auth, draft) => {
+    console.log('authStore reaction called..')
+  })
+
+}
+authReactor()
+
+*/
+
+
+
 const withAuth = Component => props => {
 
-  const {
-    auth,
-    /* openConfirmationCodeModal,
-    setUsername,
-    setUserId,
-    setTimestamp,
-    renewSession,
-    setAuthStatus,*/
-    setUnauthStatus,
-  } = React.useContext(authContext);
-
-
+  const auth = AuthStore.useState(s => s.auth)
+  //const authenticated = AuthStore.useState(s => s.authenticated)
+  //const authenticated = AuthStore.useState(s => s.auth.authenticated)  // could use this one as well, but might not reflect timed-out jwt tokens
 
 
   const { authFailRoute=R.SIGNIN_ROUTE } = props
@@ -40,16 +56,11 @@ const withAuth = Component => props => {
     return <div><SignOut /><Component { ...props }  /></div>
   }
 
-/*
+  //return (<div>not authenticated</div>)
 
-  const storedUserAuth = getStoredUserAuth({ log:'renewSession (getUsernameCached)', emptyObj: null })
-  if (storedUserAuth !== null && storedUserAuth.authenicated ) {
-    setAuthStatus(storedUserAuth)
-    return null
-  }
-*/
   console.log('withAuth: component is not authenticated, access not allowed, resetting auth status and redirecting to sign-in!!')
   setUnauthStatus({ keepUsername: true, log: 'withAuth'})
+
 
   return <Redirect
     to={{

@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Redirect } from "react-router";
 
-import SignUpForm from "./signUpFormAsync";
+//import SignUpForm from "./signUpFormAsync";
 
 
 //## SES is still in sandbox.
@@ -9,19 +9,20 @@ import SignUpForm from "./signUpFormAsync";
 
 
 /** Context consumer */
-import { authContext } from "../../contexts/AuthContext";
+//import { authContext } from "../../contexts/AuthContextNoPs";
 
 /** Presentation/UI */
 //import { AuthPageWrapper, SignUpWrapper } from "../../../AppStyles.styles.tw";
 
-import GlobalModalContainer from "../../modal";
-import ConfirmationCodeForm from "./confirmationCodeForm";
+import GlobalModalContainer from "../../modal.js.old";
+import ConfirmationCodeForm from "./confirmationCodeForm.js.old";
 
 import { R } from '../../routeNames'
 
 
 
 const SignUp = function() {
+  /*
   const {   confirmUserModalOpened,      // boolean
             setConfirmUserModalOpened,  // sets confirmationCodeModal to true/false
 
@@ -30,6 +31,8 @@ const SignUp = function() {
 
             //auth,
         } = React.useContext(authContext)
+    
+        /*
 /*
   if (auth.authenticated) {
     return <Redirect to={R.AUTH_ROUTE} />;
@@ -37,6 +40,7 @@ const SignUp = function() {
 */
   return (
       <>
+{/*      
         <GlobalModalContainer
           toggleModal={() => setConfirmUserModalOpened(false)}
           title="Please Check Your Phone's SMS"
@@ -52,6 +56,7 @@ const SignUp = function() {
         />
 
         <SignUpForm />
+*/}        
       </>
   )
 }

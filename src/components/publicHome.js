@@ -2,27 +2,25 @@ import React, { useState } from 'react';
 import '../App.css';
 
 import { R } from '../auth/routeNames'
-import { useLocation, useHistory } from 'react-router-dom'
+import { useLocation, useHistory, Link } from 'react-router-dom'
 //import { Redirect } from "react-router";
 
-import { authContext } from '../auth/contexts/AuthContext'
 
 import { ConfirmationCodeDialog, PsRenderDialog, psDialogAsync, InputFunction, SimplePrompt, SimpleDialog } from '../auth/containers/modalPortal/modalPortal'
-
+import { renewSession } from "../auth/connectedHelpers/renewSession"
+import { AuthStore } from "../auth/psStore/AuthStore";
 
 
 const PublicHome = props => {
 
-  const {
-    renewSession,
-    auth
-  } = React.useContext(authContext);
+
 
 
   const { authFailRoute=R.SIGNIN_ROUTE } = props
   const location = useLocation();
   const history = useHistory()
   const currentLocation = location.pathname
+  const auth = AuthStore.useState(s => s.auth)
 
 
   //////////////////////////////////
@@ -156,6 +154,10 @@ const PublicHome = props => {
         >
           Sign In
         </button>
+
+        <Link to={R.PRIVATE_HOME_ROUTE}>Private Home</Link>
+        <Link to={R.PRIVATE_ITEM_LIST}>Private Item List</Link>
+
 
       </header>
 

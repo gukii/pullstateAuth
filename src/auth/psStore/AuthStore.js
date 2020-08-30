@@ -1,20 +1,21 @@
 import { Store } from "pullstate";
 import { TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION, EMPTY_USER_AUTH } from "../cognito/config";
-import { getStoredUsername } from '../cognito/localStorage'
+import { getStoredUsername, getStoredUserAuth } from '../cognito/localStorage'
 
 
 export const AuthStore = new Store({
 
     isAuthenticated: false,
 
-    username: null,
+    username: null, // (is inside auth, username inside auth gets initialized with username from localstorage
     userId: null,
 
-    auth: EMPTY_USER_AUTH,  // currently mostly dealing with this one, as refactoring from context to pullstate
+    auth: getStoredUserAuth({ log:"pullstate store init", emptyObj:EMPTY_USER_AUTH }),  // currently mostly dealing with this one, as refactoring from context to pullstate
 
     userAccountVerified: false,
     attributeVerified: false,
     mfaVerified: false,    
+
   
 })
 

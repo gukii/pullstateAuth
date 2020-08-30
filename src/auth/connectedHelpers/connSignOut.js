@@ -1,7 +1,6 @@
 
-import authenticateAsync from '../cognito/authenticate'
-//import { authContext } from "../contexts/AuthContext";
-import { getValuesFromSession } from '../cognito/config'
+//import authenticateAsync from '../cognito/authenticate'
+//import { getValuesFromSession } from '../cognito/config'
 import signOutAsync from '../cognito/signOut'
 import { connNewCognitoUser, connGetCognitoUsername } from './connCognitoUser'
 

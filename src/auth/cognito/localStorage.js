@@ -19,7 +19,7 @@ export const getStoredUserAuth = function({ log='', emptyObj=null }) {
       //console.log('getStoredUserAuth res auth:', auth)
       const json = JSON.parse(auth)
 
-      console.log(`getStoredUserAuth res json ${ log.length > 0 ? ", for " +log : "" }:`, json.authenticated)
+      console.log(`getStoredUserAuth res json ${ log.length > 0 ? ", for " +log : "" }:`, auth)
       return json
     }
 
@@ -60,7 +60,8 @@ export const getStoredUsername = function() {
   if (authObj === null || authObj.username === null || authObj.username === undefined || authObj.username.length < 1) {
     console.log('!!! no username in localstorage.. to create cognito user for session renewal..')
     return null
-  }
+  } 
+  console.log('getStoredUsername:', authObj.username)
 
   return authObj.username
 }

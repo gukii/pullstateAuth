@@ -1,7 +1,6 @@
 //import React, { useState, useEffect } from "react";
-
+/*
 import registerAsync from '../cognito/register'
-//import { authContext } from "../contexts/AuthContext";
 import { getValuesFromSession } from '../cognito/config'
 import { resetStoredUserAuth } from '../cognito/localStorage'
 
@@ -77,3 +76,4 @@ export async function connSignUpAsync({ loginId='', // = username, email, phonen
     console.log('connSignInAsync finally..')
   }
 }
+*/
