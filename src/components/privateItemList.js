@@ -15,14 +15,7 @@ const PrivateItemList = props => {
         <p>
           Private, PrivateItemList component showing.. { JSON.stringify(props) }
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+
 
         <NavLink
           to={ R.PRIVATE_HOME_ROUTE }
@@ -33,6 +26,17 @@ const PrivateItemList = props => {
         >
           Private Home
         </NavLink>
+
+
+        <NavLink
+          to={ R.PUBLIC_HOME_ROUTE }
+          activeStyle={{
+            fontWeight: "bold",
+            color: "green"
+          }}
+        >
+          Public Home
+        </NavLink>        
 
       </header>
     </div>

@@ -13,8 +13,43 @@ code {
 }
 
 
+@keyframes fadeInDown {
+  0% {
+      opacity: 0;
+      transform: translateY(-1.25em);
+  }
+  100% {
+      opacity: 1;
+      transform: translateY(0);
+  }
+}
+.fadeDown {
+  animation-name: fadeInDown;
+  animation-duration: 0.5s;
+}
 
 
+
+@keyframes fadeInDownReverse {
+  0% {
+      opacity: 1;
+      transform: translateY(0);
+  }
+  100% {
+      opacity: 0;
+      transform: translateY(-1.25em);
+  }
+}
+.fadeDownReverse {
+  animation-name: fadeInDownReverse;
+  animation-duration: 0.3s;
+}
+
+
+
+
+
+/* for spinner */
 
 .centered {
   position: fixed;
@@ -67,21 +102,6 @@ code {
 
 
 
-
-@keyframes fadeInDown {
-  0% {
-      opacity: 0;
-      transform: translateY(-1.25em);
-  }
-  100% {
-      opacity: 1;
-      transform: translateY(0);
-  }
-}
-.fadeDown[open] {
-  animation-name: fadeInDown;
-  animation-duration: 0.5s;
-}
 
 
 

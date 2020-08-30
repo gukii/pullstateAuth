@@ -51,6 +51,11 @@ export function RenderOncePortalWrapper({ portalRoot=undefined, divClass="modalP
 
 
 
+export const sleep = m => new Promise(r => setTimeout(r, m))
+
+
+
+
 export function Modal({ isOpen=true, 
                         closeFn=null, 
                         portalRoot=undefined,
@@ -71,13 +76,17 @@ export function Modal({ isOpen=true,
 
     console.log()
 
-    const handleClick = (e) => {
+    const handleClick = async(e) => {
       if (!modalRef.current) return
       if (modalRef.current.contains(e.target)) {
         console.log('clicked inside!')
         return
       }
-      console.log('clicked outside!')
+      console.log('clicked outside!', modalRef)
+
+      modalRef.current.classList.toggle('fadeDownReverse')
+      await sleep(250)
+
       if (onCancel !== null) {
         console.log('calling onCancel within handleClick')
         onCancel()
@@ -99,7 +108,7 @@ export function Modal({ isOpen=true,
 
 
   return ( 
-    isOpen &&
+    //isOpen &&
     <RenderOncePortalWrapper portalRoot={portalRoot}>
       <div
         style={{
@@ -112,14 +121,14 @@ export function Modal({ isOpen=true,
           backgroundColor: "rgba(0,0,0,0.6)"
         }}
       >
-        <div    
-          className="fadeDown"    
+        <div
           style={{
             padding: "20%",
           }}
         >
 
           <div  ref={modalRef}
+                className={"fadeDown"}
                 style={{
                   width: "100%",
                   background: "gray",
@@ -138,7 +147,9 @@ export function Modal({ isOpen=true,
                   textAlign: "center"
                 }}
             >
+
               {children}
+
             </div>
             { onSubmit !== null && <button onClick={ ()=>onSubmit() }>{submitButtonLabel}</button> }
             { onCancel !== null && <button onClick={ ()=>onCancel() }>{cancelButtonLabel}</button> }
