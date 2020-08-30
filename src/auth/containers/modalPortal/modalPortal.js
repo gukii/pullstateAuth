@@ -51,6 +51,11 @@ export function RenderOncePortalWrapper({ portalRoot=undefined, divClass="modalP
 
 
 
+export const sleep = m => new Promise(r => setTimeout(r, m))
+
+
+
+
 export function Modal({ isOpen=true, 
                         closeFn=null, 
                         portalRoot=undefined,
@@ -71,13 +76,16 @@ export function Modal({ isOpen=true,
 
     console.log()
 
-    const handleClick = (e) => {
+    const handleClick = async(e) => {
       if (!modalRef.current) return
       if (modalRef.current.contains(e.target)) {
         console.log('clicked inside!')
         return
       }
-      console.log('clicked outside!')
+      console.log('clicked outside!', modalRef)
+
+      await fadeOut()
+
       if (onCancel !== null) {
         console.log('calling onCancel within handleClick')
         onCancel()
@@ -97,9 +105,15 @@ export function Modal({ isOpen=true,
 
   ///// end of click inside/outside detection
 
+  // fading out the element, sleeping, then it can be removed (by setting isOpen to false = preventing)
+  async function fadeOut() {
+    modalRef.current.classList.toggle('fadeDownReverse')
+    await sleep(250)
+  }
+
 
   return ( 
-    isOpen &&
+    //isOpen &&
     <RenderOncePortalWrapper portalRoot={portalRoot}>
       <div
         style={{
@@ -112,14 +126,14 @@ export function Modal({ isOpen=true,
           backgroundColor: "rgba(0,0,0,0.6)"
         }}
       >
-        <div    
-          className="fadeDown"    
+        <div
           style={{
             padding: "20%",
           }}
         >
 
           <div  ref={modalRef}
+                className={"fadeDown"}
                 style={{
                   width: "100%",
                   background: "gray",
@@ -138,7 +152,9 @@ export function Modal({ isOpen=true,
                   textAlign: "center"
                 }}
             >
-              {children}
+
+              { children }
+
             </div>
             { onSubmit !== null && <button onClick={ ()=>onSubmit() }>{submitButtonLabel}</button> }
             { onCancel !== null && <button onClick={ ()=>onCancel() }>{cancelButtonLabel}</button> }
@@ -172,65 +188,6 @@ export function InputFunction({ id="", label="", field, setField, type="text", p
 
 }
 
-
-
-//////////////////////////////////////////////////////////////
-/*
-export function PsRenderDialogOld() {
-  //const isOpen = PortalStore.useState(s=>s.isOpen)
-  const Component = PortalStore.useState(s=>s.component)
-  const isOpen = Component === null ? false : true
-  console.log('PsRenderDialog, isOpen:', isOpen)
-
-  const portalRoot = document.getElementById("modal-portal")
-
-
-  // to store local state of input field
-  const [code, setCode] = useState('') //input field state
-
-  // so that next time dialog is rendered with empty input fields again..
-  function resetState() {
-    setCode("")
-  }
-
-  function onCancel() {
-    PortalStore.currentState.onCancel("dialogClosed")
-    //PortalStore.update(s=> { s.isOpen = false } )
-    resetState()
-  }
-
-  function onSubmit() {
-    PortalStore.currentState.onSubmit(code)
-    PortalStore.update(s=> { s.isOpen = false } )
-    resetState()
-  }  
-
-  //if (!isOpen) return null
-
-  const content = PortalStore.currentState.content
-
-  if (!isOpen) return null
-  
-  return ( isOpen &&  
-    <Modal  isOpen={ isOpen } 
-            closeFn={ onCancel } 
-            portalRoot={ portalRoot }
-    >
-        <strong>{content.title}</strong>
-        <br/>
-        <br/>
-        <InputFunction id="in1" label={content.inputLabel} field={code} setField={setCode} type={content.inputType} />
-        <br/>
-        <button onClick={ onSubmit }>{ content.submitButtonLabel }</button>
-        <button onClick={ onCancel }>{ content.cancelButtonLabel }</button> 
-
-        <PortalStore.currentState.component />
-
-    </Modal>
-  )  
-}
-*/
-//==========
 
 
 // simplistic dialog

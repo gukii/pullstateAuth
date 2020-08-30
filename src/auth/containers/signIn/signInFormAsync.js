@@ -19,9 +19,9 @@ import useErrorHandler from "../../custom-hooks/ErrorHandler";
 //import { authContext } from "../../contexts/AuthContext";
 //import { getValuesFromSession } from '../../cognito/config'
 
-import { useHistory, useLocation, history } from 'react-router-dom';  // added by chris, probably not the best place to put this..
+import { useHistory, useLocation } from 'react-router-dom';  // added by chris, probably not the best place to put this..
 import { Redirect } from "react-router";
-import { pushWithProperOrigin, getRouteOrigin, getRouteStateVar } from '../routeHelpers'
+import { getRouteStateVar } from '../routeHelpers'
 
 import authenticateAsync from '../../cognito/authenticate'
 //import { connSignInAsync } from '../../connectedHelpers/connSignIn'
@@ -34,6 +34,7 @@ import { getValuesFromSession } from '../../cognito/config'
 import { resetStoredUserAuth } from '../../cognito/localStorage'
 
 import { confirmCognitoUserAsync } from '../../cognito/confirmation'
+import resendConfirmation from '../../cognito/resendConfirmation'
 
 import { setAuthStatus, setUnauthStatus } from '../../connectedHelpers/authHelper'
 import { AuthStore } from "../../psStore/AuthStore";
@@ -112,7 +113,7 @@ const SignInForm = function() {
   // SIGN-IN LOGIC
   async function doSignIn({ username='', password='' }) {
 
-    // triggers all context related functions on successful login or login flow action (e.g. password reset, confirmation code entered, mfa ..)
+    // triggers all pullstate related functions on successful login or login flow action (e.g. password reset, confirmation code entered, mfa ..)
     // sess = cognitoUser obj returned by cognito sign-in api call
     function doSuccess(sess, log='') {
       console.log(log)
@@ -133,7 +134,7 @@ const SignInForm = function() {
       return newAuthObj
     }
 
-    // triggers all context related functions on failure
+    // triggers all pullstate related functions on failure
     function doFailure(log='') {
       console.log(log)
       setUnauthStatus({ log:"connSignInAsync error. "+log })
@@ -211,7 +212,7 @@ const SignInForm = function() {
                   rejectVal:"", 
                   alwaysResolve: true 
                 })                
-                return doFailure("connSignInAsync, confirmation code not entered" )
+                return doFailure("Confirmation code not entered" )
               }
 
               try {
@@ -223,8 +224,35 @@ const SignInForm = function() {
               catch (err) {
                 setLoading(false)
                 // ExpiredCodeException   // err.message: Invalid code provided, please request a code again.
-                if (err.code === 'ExpiredCodeException') alert(err.message || "confirmation code expired, request a new one..")
-                return doFailure( !!err.code ? err.code : "connSignInAsync, confirmation code flow failure" )
+                if (err.code === 'CodeMismatchException') {
+                  return doFailure("Confirmation code was not correct." )
+                }
+                
+                if (err.code === 'ExpiredCodeException') {
+                  const res = await psDialogAsync({ 
+                    component: SimpleDialog, 
+                    title:"Confirmation Code Expired", 
+                    text:"Please request a new confirmation code.", 
+                    submitLabel:"Request new code", 
+                    cancelLabel:"Cancel", 
+                    rejectVal:"", 
+                    alwaysResolve: true 
+                  }) 
+                  if (res === "submit") {
+                    console.log('request new confirmation code here..')
+
+                    try {
+                      await resendConfirmation(cognitoUser)
+                      return doFailure("New confirmation code requested, check your sms or email." )
+                    }
+                    catch (reqErr) {
+                      return doFailure("Error requesting new confirmation code:", reqErr )
+                    }
+    
+                    //return doFailure("New confirmation code requested, check your sms or email." )
+                  }                   
+                }
+                return doFailure( !!err.code ? err.code : "Confirmation code expired, request a new one." )
               }
               break
 
@@ -241,7 +269,7 @@ const SignInForm = function() {
                 alwaysResolve: true 
               })                 
 
-              return doFailure( !!e.code ? e.code : "connSignInAsync, confirmation code flow failure, also no cognitoUser" )
+              return doFailure( !!e.code ? e.code : "Password not correct" )
               break
 
 
@@ -252,7 +280,7 @@ const SignInForm = function() {
                 const newPassword = await psDialogAsync({ component: SimplePrompt, title:"Enter new password", text:"Your password needs to be reset.", label:"Password:", submitLabel:"Send", cancelLabel:"Cancel" })
 
                 //const newPassword = prompt("Please enter new password:","");
-                if (newPassword === '') return doFailure("connSignInAsync, password reset flow failure, no password entered" )
+                if (newPassword === '') return doFailure("Password reset failure, no password entered.." )
 
 
                 // User was signed up by an admin and must provide new
@@ -276,7 +304,7 @@ const SignInForm = function() {
                 if (res !== undefined) {
                   return doSuccess(res, "connSignInAsync, password reset flow success")
                 } else {
-                  return doFailure("connSignInAsync, completeNewPasswordChallenge password reset flow failure" )
+                  return doFailure("CompleteNewPasswordChallenge password reset failure" )
                 }
 
                 break
@@ -291,7 +319,7 @@ const SignInForm = function() {
                   rejectVal:"", 
                   alwaysResolve: true 
                 })                 
-                return doFailure("connSignInAsync, InvalidPasswordException.." )
+                return doFailure("Password not correct.." )
                 break
 
         // other case parts are listed in authenticate.js, the necessary code can be uncommented and pasted in here..
@@ -299,7 +327,14 @@ const SignInForm = function() {
         default:
 
             if (!!e.message && !!e.code) {
-                alert(`${e.message} (${e.code})`)
+                await psDialogAsync({ 
+                  component: SimpleDialog, 
+                  title:"New Error", 
+                  text:`${e.message} (${e.code})`, 
+                  submitLabel:"Ok", 
+                  rejectVal:"", 
+                  alwaysResolve: true 
+                })                 
                 return doFailure('!!! connSignInAsync err:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
             }
             //alert(JSON.stringify(e))

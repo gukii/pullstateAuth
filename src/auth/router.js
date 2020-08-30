@@ -133,20 +133,23 @@ export default function RouterExample() {
         <Switch>
 
 
+          <Route exact path={R.PUBLIC_HOME_ROUTE} >
+            <PublicHome />
+          </Route>
 
-          <Route path={R.SIGNIN_ROUTE}>
+          <Route exact path={R.SIGNIN_ROUTE}>
             <SignIn />
           </Route>
 
-          <Route path={R.SIGNOUT_ROUTE}>
+          <Route exact path={R.SIGNOUT_ROUTE}>
             <SignOut />
           </Route>
 
-          <Route path={R.SIGNUP_ROUTE}>
+          <Route exact path={R.SIGNUP_ROUTE}>
             <SignUp />
           </Route>
 
-          <Route path={R.PRIVATE_ITEM_LIST} >
+          <Route exact path={R.PRIVATE_ITEM_LIST} >
             <PrivateItemList />
           </Route>          
 

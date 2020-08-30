@@ -35,55 +35,52 @@ import { renewSession } from "../auth/connectedHelpers/renewSession"
 // THE URL CHANGES, BUT PUBLIC_HOME DOES NOT GET RENDERED, PRIVATE HOME DOES GET RENDERED INSTEAD
 
 
+  // The `path` lets us build <Route> paths that are
+  // relative to the parent route, while the `url` lets
+  // us build relative links.
 const PrivateHome = props => {
-
-  let { path, url } = useRouteMatch()
-  //const auth = AuthStore.useState(s => s.auth)
-
+  let { path, url } = useRouteMatch();
 
   return (
-    <Router>
-      <div className="App">
-        <header className="App-header">
-          <p>
-              <Sparkles>Private</Sparkles> Home, Page1 component showing.. { JSON.stringify(props) }
-          </p>
+    <div className="App">
+      <header className="App-header">      
+        <ul>
+          <li>
+            <Link to={R.PRIVATE_ITEM_LIST}>Private Item List</Link>
+          </li>
+          <li>
+          <Link to={R.PUBLIC_HOME_ROUTE}>Public Home</Link>
+          </li>
+          <li>
+          <Link to={`${url}/more`}>More</Link>
+          </li>
+          <li>
+            <Link to={`/`}>Home</Link>
+          </li>        
+        </ul>
 
-          <NavLink
-            to={ R.PRIVATE_ITEM_LIST }
-            activeStyle={{
-              fontWeight: "bold",
-              color: "red"
-            }}
-          >
-            Item List
-          </NavLink>
+        <NavLink
+          to={ R.PRIVATE_ITEM_LIST }
+          activeStyle={{
+            fontWeight: "bold",
+            color: "white"
+          }}
+        >
+          Item List
+        </NavLink>      
 
-          <NavLink
-            to={`${url}/more`}
-            activeStyle={{
-              fontWeight: "bold",
-              color: "red"
-            }}
-          >
-            <Sparkles>More</Sparkles>
-          </NavLink>
-
-        </header>
-      </div>
-
-      <Switch>
-
-        <Route path={`${path}/more`}>
-          <MoreComponent />
-        </Route>     
-
-      </Switch>
-
-    </Router>
-
-  )
-}
+        <Switch>
+          <Route exact path={path}>
+            <h3>Please select a topic.</h3>
+          </Route>
+          <Route path={`${path}/more`}>
+            <MoreComponent />
+          </Route>
+        </Switch>
+      </header>
+    </div>
+  );
+} 
 
 //export default PrivateHome
 
@@ -92,11 +89,10 @@ export default withAuth(PrivateHome)
 export const PrivateHomeNoAuth = PrivateHome
 
 
+///////////////////////////////////
 
 function MoreComponent() {  // check access token / id token expiration time any time the access token (and its related accessTokenExp) gets updated
   // sign the user out, once the session is expired
-
-
 
   return (
     <div>
