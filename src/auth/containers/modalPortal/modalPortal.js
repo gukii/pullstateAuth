@@ -84,8 +84,7 @@ export function Modal({ isOpen=true,
       }
       console.log('clicked outside!', modalRef)
 
-      modalRef.current.classList.toggle('fadeDownReverse')
-      await sleep(250)
+      await fadeOut()
 
       if (onCancel !== null) {
         console.log('calling onCancel within handleClick')
@@ -105,6 +104,12 @@ export function Modal({ isOpen=true,
   },[modalRef, onCancel, closeFn])   
 
   ///// end of click inside/outside detection
+
+  // fading out the element, sleeping, then it can be removed (by setting isOpen to false = preventing)
+  async function fadeOut() {
+    modalRef.current.classList.toggle('fadeDownReverse')
+    await sleep(250)
+  }
 
 
   return ( 
@@ -148,7 +153,7 @@ export function Modal({ isOpen=true,
                 }}
             >
 
-              {children}
+              { children }
 
             </div>
             { onSubmit !== null && <button onClick={ ()=>onSubmit() }>{submitButtonLabel}</button> }
@@ -183,65 +188,6 @@ export function InputFunction({ id="", label="", field, setField, type="text", p
 
 }
 
-
-
-//////////////////////////////////////////////////////////////
-/*
-export function PsRenderDialogOld() {
-  //const isOpen = PortalStore.useState(s=>s.isOpen)
-  const Component = PortalStore.useState(s=>s.component)
-  const isOpen = Component === null ? false : true
-  console.log('PsRenderDialog, isOpen:', isOpen)
-
-  const portalRoot = document.getElementById("modal-portal")
-
-
-  // to store local state of input field
-  const [code, setCode] = useState('') //input field state
-
-  // so that next time dialog is rendered with empty input fields again..
-  function resetState() {
-    setCode("")
-  }
-
-  function onCancel() {
-    PortalStore.currentState.onCancel("dialogClosed")
-    //PortalStore.update(s=> { s.isOpen = false } )
-    resetState()
-  }
-
-  function onSubmit() {
-    PortalStore.currentState.onSubmit(code)
-    PortalStore.update(s=> { s.isOpen = false } )
-    resetState()
-  }  
-
-  //if (!isOpen) return null
-
-  const content = PortalStore.currentState.content
-
-  if (!isOpen) return null
-  
-  return ( isOpen &&  
-    <Modal  isOpen={ isOpen } 
-            closeFn={ onCancel } 
-            portalRoot={ portalRoot }
-    >
-        <strong>{content.title}</strong>
-        <br/>
-        <br/>
-        <InputFunction id="in1" label={content.inputLabel} field={code} setField={setCode} type={content.inputType} />
-        <br/>
-        <button onClick={ onSubmit }>{ content.submitButtonLabel }</button>
-        <button onClick={ onCancel }>{ content.cancelButtonLabel }</button> 
-
-        <PortalStore.currentState.component />
-
-    </Modal>
-  )  
-}
-*/
-//==========
 
 
 // simplistic dialog
