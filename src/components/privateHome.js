@@ -10,6 +10,8 @@ import {
   useRouteMatch
 } from "react-router-dom";
 
+//import { Redirect } from "react-router";
+
 
 import withAuth from '../hoc/withAuth'
 import { NavLink } from 'react-router-dom'
@@ -17,13 +19,27 @@ import { R } from '../auth/routeNames'
 
 import Sparkles from './sparkles'
 
-import { authContext } from '../auth/contexts/AuthContext'
+import { renewSession } from "../auth/connectedHelpers/renewSession"
+//import { AuthStore } from "../auth/psStore/AuthStore";
 
+
+
+
+//import PublicHome from './publicHome'
+
+
+
+// CAN T ROUTE BACK TO PUBLIC_HOME, NOT SURE WHY... SEEMS A ROUTER ISSUE.
+// NON OF THE ROOT ROUTER ROUTES WORK IN THE SUB-ROUTER..
+// 
+// THE URL CHANGES, BUT PUBLIC_HOME DOES NOT GET RENDERED, PRIVATE HOME DOES GET RENDERED INSTEAD
 
 
 const PrivateHome = props => {
 
   let { path, url } = useRouteMatch()
+  //const auth = AuthStore.useState(s => s.auth)
+
 
   return (
     <Router>
@@ -32,16 +48,6 @@ const PrivateHome = props => {
           <p>
               <Sparkles>Private</Sparkles> Home, Page1 component showing.. { JSON.stringify(props) }
           </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-
-
 
           <NavLink
             to={ R.PRIVATE_ITEM_LIST }
@@ -70,7 +76,7 @@ const PrivateHome = props => {
 
         <Route path={`${path}/more`}>
           <MoreComponent />
-        </Route>
+        </Route>     
 
       </Switch>
 
@@ -87,12 +93,9 @@ export const PrivateHomeNoAuth = PrivateHome
 
 
 
-function MoreComponent() {
+function MoreComponent() {  // check access token / id token expiration time any time the access token (and its related accessTokenExp) gets updated
+  // sign the user out, once the session is expired
 
-  const {
-    //auth,
-    renewSession,
-  } = React.useContext(authContext);
 
 
   return (
@@ -103,9 +106,14 @@ function MoreComponent() {
           <Link to={R.PRIVATE_HOME_ROUTE}>Private Home</Link>
         </li>
         <li>
-          <Link to={'/'}>Public Home</Link>
+          <Link to={R.PUBLIC_HOME_ROUTE}>Public Home</Link>
         </li>
-
+        <li>
+          <Link to={R.PRIVATE_ITEM_LIST}>Private Item List</Link>
+        </li>
+        <li>
+          <Link to={R.SIGNIN_ROUTE}>Sign In</Link>
+        </li>
         <button onClick={ async()=> {
             const newAuthObj = await renewSession(true) // true = forceUpdate of the session, even if the current session has not expired yet
             if (newAuthObj === null) {

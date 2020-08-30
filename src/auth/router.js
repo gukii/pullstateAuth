@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Redirect,
-  //Link
+  //Redirect,
+  //Link,
 } from "react-router-dom";
 
 
@@ -16,7 +16,10 @@ import SignOut from '../auth/containers/signOut'
 import PublicHome from '../components/publicHome'
 import PrivateHome from '../components/privateHome'
 
-import { PrivateHomeNoAuth } from '../components/privateHome'
+import PrivateItemList from '../components/privateItemList'
+
+
+//import { PrivateHomeNoAuth } from '../components/privateHome'
 
 
 // import some constants for named routes
@@ -25,8 +28,87 @@ import { R } from './routeNames'
 
 
 
+import { AuthStore } from "./psStore/AuthStore";
+
+import { showExpirationTime } from './cognito/showExpirationTime'
+import { connRenewSessionAsync } from './connectedHelpers/connRenewSession'
+import msUntilCognitoTS from './cognito/msUntilCognitoTS'
+import { TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION } from "./cognito/config";
+import { setAuthStatus, setUnauthStatus } from './connectedHelpers/authHelper'
+
+
+
 // only goes one level deep, due to the map statement. need different loop to go thru deeper nedsted tree
 export default function RouterExample() {
+
+
+
+  const auth = AuthStore.useState(s => s.auth)
+
+  useEffect( ()=> {
+    console.log('main router effect called, auth:', auth)
+    if (!auth.authenticated && !!auth.username && auth.username.length > 0) {
+      console.log('got username, but not authenticated. trying to renew session..', auth)
+      connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, setUsername:null, auth, forceUpdate:false, log:'called by ROUTER' })
+
+    }
+  },[auth])
+
+
+
+
+  useEffect( ()=> {
+    if (!auth.authenticated) return
+    if (auth.accessTokenExp === 0) return
+
+    console.log('TIMER EFFECT: auth.authenticated:', auth.authenticated, ' auth.accessTokenExp:', auth.accessTokenExp)
+
+
+    if (auth.accessTokenExp > 0) {
+      // we are logged in and have an expiration date of the accessToken
+      console.log('TIMER EFFECT: access token expiration time:', showExpirationTime(auth.accessTokenExp) )
+      console.log('TIMER EFFECT: sessionRenew trigger set at:', showExpirationTime(auth.accessTokenExp-TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION) )
+
+      const timerDuration = msUntilCognitoTS({ cognitoTS: auth.accessTokenExp, margin: TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION })
+
+      console.log('TIMER EFFECT: duration until sessionRenew trigger in ms:', timerDuration, ' in secs:', timerDuration/1000, ' in mins:', timerDuration/1000/60)
+
+      const timer = setTimeout( () => {
+        console.log('TIMER EFFECT: RENEW ACCESS TOKEN PLACEHOLDER, resetting authObj.. ')
+        connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, setUsername:null, auth, forceUpdate:false, log:'called by TIMER EFFECT' })
+      }, timerDuration );
+
+      // clean up timer on unmount of effect
+      return () => clearTimeout(timer);
+
+    }
+
+    //console.log('accessToken is 0, not setting TIMER EFFECT to renew session')
+
+  }, [auth])
+
+
+  // check access token / id token expiration time any time the access token (and its related accessTokenExp) gets updated
+  // sign the user out, once the session is expired
+
+  useEffect( ()=> {
+
+    const timeUntilAccessTokenExpiration = msUntilCognitoTS({ cognitoTS: auth.accessTokenExp, margin: 0 })
+    const timeUntilIdTokenExpiration = msUntilCognitoTS({ cognitoTS: auth.idTokenExp, margin: 0 })
+
+    // session expired
+    if (timeUntilAccessTokenExpiration <= 0 || timeUntilIdTokenExpiration <= 0) {
+
+      console.log('session expiration time check, session expired, trying to connRenewSession..')
+      connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, auth, log:'connRenew detected access/id token expired' })
+
+    } else {
+      console.log('session not expired yet..')
+    }
+
+  }, [auth])
+
+
 
 
   return (
@@ -64,6 +146,10 @@ export default function RouterExample() {
             <SignUp />
           </Route>
 
+          <Route path={R.PRIVATE_ITEM_LIST} >
+            <PrivateItemList />
+          </Route>          
+
 
           { /* dont use "exact" on private routes, because PrivateHome is its own router component, it needs to handle routes below itself */ }
           <Route path={R.PRIVATE_HOME_ROUTE}>
@@ -76,6 +162,7 @@ export default function RouterExample() {
           <Route path={R.PUBLIC_HOME_ROUTE} >
             <PublicHome />
           </Route>
+
 
 
         </Switch>

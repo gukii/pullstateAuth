@@ -3,8 +3,6 @@ import React, { useState, useEffect } from "react";
 
 //import { Button, Form, FormGroup, Label, Input } from "reactstrap";
 
-/** Context consumer */
-//import { authContext } from "../../contexts/AuthContext";
 
 /** Presentation/UI */
 //import { SignUpContainer } from "../../../AppStyles.styles.tw";
@@ -18,7 +16,7 @@ import useErrorHandler from "../../custom-hooks/ErrorHandler";
 //import { validateForm } from "./helpers";
 
 
-import { authContext } from "../../contexts/AuthContext";
+//import { authContext } from "../../contexts/AuthContext";
 //import { getValuesFromSession } from '../../cognito/config'
 
 import { useHistory, useLocation, history } from 'react-router-dom';  // added by chris, probably not the best place to put this..
@@ -36,6 +34,13 @@ import { getValuesFromSession } from '../../cognito/config'
 import { resetStoredUserAuth } from '../../cognito/localStorage'
 
 import { confirmCognitoUserAsync } from '../../cognito/confirmation'
+
+import { setAuthStatus, setUnauthStatus } from '../../connectedHelpers/authHelper'
+import { AuthStore } from "../../psStore/AuthStore";
+
+
+
+import { ConfirmationCodeDialog, PsRenderDialog, psDialogAsync, InputFunction, SimplePrompt, SimpleDialog } from '../modalPortal/modalPortal'
 
 
 //
@@ -60,7 +65,10 @@ const SignInForm = function() {
   //const [firstRender, setFirstRender] = useState(false)
   const SECS_BEFORE = (59*60) // = 59min  // should be about 10, secs before token expires to re-new token while still valid
 
+  const auth = AuthStore.useState(s => s.auth)
+  //const auth = AuthStore.auth  
 
+  /*
   const {
     auth,
     openConfirmationCodeModal,
@@ -70,12 +78,26 @@ const SignInForm = function() {
     setAuthStatus,
     setUnauthStatus,
   } = React.useContext(authContext);
+*/
+  /*
+    isAuthenticated: false,
+
+    username: null,
+    userId: null,
+
+    auth: EMPTY_USER_AUTH,
+
+    userAccountVerified: false,
+    attributeVerified: false,
+    mfaVerified: false,    
+  */
 
 
   if (auth.authenticated) {
 
     // remember the URL the user came from
     const routeOrigin = getRouteStateVar({ location, fieldName: 'from' })
+    console.log('auth.authenticated is true, auth:', auth)
 
     // only redirect the user to his origin URL, if the origin URL is different than signin, signup, or /, otherwise redirect to AUTH_ROUTE (=auth home page)
     console.log('routeOrigin:', routeOrigin)
@@ -88,21 +110,26 @@ const SignInForm = function() {
 
 
   // SIGN-IN LOGIC
-  async function doSignIn({ username='', password='', setAuthStatus, setUnauthStatus, setUsername, setUserId, setSession }) {
+  async function doSignIn({ username='', password='' }) {
 
     // triggers all context related functions on successful login or login flow action (e.g. password reset, confirmation code entered, mfa ..)
     // sess = cognitoUser obj returned by cognito sign-in api call
     function doSuccess(sess, log='') {
       console.log(log)
 
-      const newAuthObj = { ...getValuesFromSession(sess), username }  // just checks correctness and extracts values from session variable
+      const newAuthObj = { ...getValuesFromSession(sess), username, authenticated:true }  // just checks correctness and extracts values from session variable
       //setSession(sess)
       //setCognitoUser(sess)
       setAuthStatus(newAuthObj) // this also stores to localStorage
-      
-      setUsername(username)               // good to have for creating userpools
+
+      // setAuthStatus does this:
+      //storeUserAuth(userAuth)
+      //AuthStore.update(s => { s.auth = newAuthObj })
+
+      // could also set s.authenticated = true
+      AuthStore.update([ s => s.username = username, s => s.userId = sess.idToken.payload.sub ])
+
       console.log('setUserId:', sess.idToken.payload.sub)
-      setUserId(sess.idToken.payload.sub) // also present within "auth"
       return newAuthObj
     }
 
@@ -120,7 +147,15 @@ const SignInForm = function() {
       console.log('connSignInAsync doSignIn called with username/password:', username, password)
 
       if (username==='' || password === '') {
-        alert('Enter a username and password!')
+        //alert('Enter a username and password!')
+        await psDialogAsync({ 
+          component: SimpleDialog, 
+          title:"Please enter a password", 
+          //text:"User sign in not possible. Try again next time.", 
+          submitLabel:"Ok", 
+          rejectVal:"", 
+          alwaysResolve: true 
+        })           
         return null
       }
 
@@ -141,7 +176,20 @@ const SignInForm = function() {
         switch (e.code) {
           case 'UserNotConfirmedException':
               console.log(e)
-              const confirmationCode = prompt("Please enter confirmation code:", "");
+              //const confirmationCode = prompt("Please enter confirmation code:", "");
+              
+              // needs to be in a try() catch(e)...
+              const confirmationCode = await psDialogAsync({ 
+                component: SimplePrompt, 
+                title:"Confirmation Code", 
+                text:"Please enter the confirmation code sent to your phone or email.", 
+                label:"Code:", 
+                submitLabel:"Verify", 
+                cancelLabel:"Cancel", 
+                rejectVal:"", 
+                alwaysResolve: true 
+              })
+
 
               if (!!e.cognitoUser) {
 
@@ -154,7 +202,15 @@ const SignInForm = function() {
               console.log('entered confirmationCode:', confirmationCode)
 
               if (confirmationCode === null || confirmationCode === undefined || confirmationCode.length === 0) {
-                alert("Confirmation code not entered")
+                //alert("Confirmation code not entered")
+                await psDialogAsync({ 
+                  component: SimpleDialog, 
+                  title:"Confirmation Code not entered", 
+                  text:"User sign in not possible. Try again next time.", 
+                  submitLabel:"Ok", 
+                  rejectVal:"", 
+                  alwaysResolve: true 
+                })                
                 return doFailure("connSignInAsync, confirmation code not entered" )
               }
 
@@ -175,7 +231,15 @@ const SignInForm = function() {
         case 'NotAuthorizedException':
 
               console.log(e)
-              alert("Password or Username not correct!");
+              //alert("Password or Username not correct!");
+              await psDialogAsync({ 
+                component: SimpleDialog, 
+                title:"Password incorrect", 
+                //text:"User sign in not possible. Try again next time.", 
+                submitLabel:"Ok", 
+                rejectVal:"", 
+                alwaysResolve: true 
+              })                 
 
               return doFailure( !!e.code ? e.code : "connSignInAsync, confirmation code flow failure, also no cognitoUser" )
               break
@@ -185,7 +249,9 @@ const SignInForm = function() {
 
                 console.log('cognitoUser.authenticateUser: newPasswordRequired callback!!')
 
-                const newPassword = prompt("Please enter new password:","");
+                const newPassword = await psDialogAsync({ component: SimplePrompt, title:"Enter new password", text:"Your password needs to be reset.", label:"Password:", submitLabel:"Send", cancelLabel:"Cancel" })
+
+                //const newPassword = prompt("Please enter new password:","");
                 if (newPassword === '') return doFailure("connSignInAsync, password reset flow failure, no password entered" )
 
 
@@ -216,15 +282,27 @@ const SignInForm = function() {
                 break
 
         case 'InvalidPasswordException':
-                alert('U entered an invalid password!')
+                //alert('U entered an invalid password!')
+                await psDialogAsync({ 
+                  component: SimpleDialog, 
+                  title:"Password incorrect", 
+                  //text:"User sign in not possible. Try again next time.", 
+                  submitLabel:"Ok", 
+                  rejectVal:"", 
+                  alwaysResolve: true 
+                })                 
                 return doFailure("connSignInAsync, InvalidPasswordException.." )
                 break
 
         // other case parts are listed in authenticate.js, the necessary code can be uncommented and pasted in here..
 
         default:
-            alert(!!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
-            return doFailure('!!! connSignInAsync err:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
+
+            if (!!e.message && !!e.code) {
+                alert(`${e.message} (${e.code})`)
+                return doFailure('!!! connSignInAsync err:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
+            }
+            //alert(JSON.stringify(e))
 
       }
     }
@@ -240,13 +318,16 @@ const SignInForm = function() {
   return (
     <div>
 
+      { loading && <div className="loader centered"/> }      
+      
+
       <form
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
         onSubmit={ async e => {
           e.preventDefault();
           console.log('onSubmit called..', e)
 
-          const auth = await doSignIn({ username:formUsername, password, setAuthStatus, setUnauthStatus, setUsername, setUserId })
+          const auth = await doSignIn({ username:formUsername, password })
 
           //console.log('after connSignInAsync, auth.authenticated, auth.username:', auth.authenticated, auth.username)
           // need to wait for context state to be set by connSignInAsync.. will not show right away in the next few lines..!!
@@ -257,7 +338,6 @@ const SignInForm = function() {
 
       }}
       >
-
 
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="formUsername">
@@ -325,4 +405,19 @@ export default SignInForm;
           />
         </FormGroup>
 
+
+
+
+
+
+
+
+      { loading && <>
+        <div className="animate-spin h-5 w-5 mr-3">ss</div>
+        <span class="flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
+        </span>        
+        Loading...
+      </>  }        
 */

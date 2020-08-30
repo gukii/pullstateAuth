@@ -24,6 +24,7 @@ import { connNewCognitoUser, connGetCognitoUsername } from './connCognitoUser'
 export async function connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username=null, auth, setUsername=null, forceUpdate=false, log="initialValue" }) {
 
       if (log.length > 0) console.log(`connRenewSession, log: ${log}`)
+      
       if (!!!auth.refreshToken || (!!auth.refreshToken && auth.refreshToken.length === 0)) {
         console.log('connRenewSessionAsync has no refreshToken, returning null', auth)
         setUnauthStatus({ keepUsername: false, log: "renewSession, refreshSessionAsync has no refreshToken" })

@@ -1,4 +1,5 @@
 // userPool is imported from config (global var)
+/*
 export async function connConfirmSignUpAsync({ username=null, code=null, setUnauthStatus }) {
 
   if (log.length > 0) console.log(`connConfirmSignUpAsync, log: ${log}`)
@@ -31,3 +32,4 @@ export async function connConfirmSignUpAsync({ username=null, code=null, setUnau
   }
 
 }
+*/

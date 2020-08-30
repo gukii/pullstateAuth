@@ -1,6 +1,8 @@
 import * as React from "react";
 import { authContext } from "../../contexts/AuthContext";
 
+import { setAuthStatus, setUnauthStatus } from '../../connectedHelpers/authHelper'
+import { AuthStore } from '../../psStore/AuthStore'
 
 //import ErrorMessage from "../../components/ErrorMessage";
 
@@ -11,6 +13,7 @@ import { getAttributeVerificationCodeAsync, verifyAttributeAsync } from '../../c
 //import { confirmationCodeAttributeForm } from "./confirmationCodeAttributeForm"
 
 import { connNewCognitoUser } from '../../connectedHelpers/connCognitoUser'
+import { confirmCognitoUserAsync } from '../../cognito/confirmation'
 
 import { Redirect } from "react-router";
 
@@ -25,19 +28,18 @@ const ConfirmationCodeForm = function() {
   const [ confirmationCode, setConfirmationCode ] = React.useState("");
   const { error, showError } = useErrorHandler(null);
 
-  const {
-    username,
-    userId,
-    userTimestamp,
+  const auth = AuthStore.useState(s => s.auth)
+  const username = auth.username
 
-    userAccountVerified,      // to confirm cognito account sign up (user or email)
+  
+  const userAccountVerified,      // to confirm cognito account sign up (user or email)
     setUserAccountVerified,
 
     attributeVerified,        // to confirm 2nd cognito user attribute (such as email/phone)
-    setAttributeVerified,
+    setAttributeVerified = null
 
-    setUnauthStatus,
-  } = React.useContext(authContext);
+
+
 
   // auto forward user to sign-in page - this is not working.. because function already returned message: Your account has been verified.
   // NEED TO VERIFY ATTRIBUTE ... MAYBE ADD TO CONTEXT A NEW FIELD

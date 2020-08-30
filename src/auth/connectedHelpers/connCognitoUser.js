@@ -3,7 +3,7 @@ import {
   } from "amazon-cognito-identity-js";
 
 
-import { getValuesFromSession, getUserPool } from "../cognito/config";
+import { getUserPool } from "../cognito/config";
 import { getStoredUsername } from "../cognito/localStorage";
 
 
@@ -44,7 +44,7 @@ export async function connNewCognitoUser({ setUnauthStatus, username=null, log="
 
         const _cognitoUser = new CognitoUser(userData);
         if (_cognitoUser === null) {
-          console.log('!!! connNewCognitoUser: ERROR couldnt get cognitoUser, returning early in AuthContext..')
+          console.log('!!! connNewCognitoUser: ERROR couldnt get cognitoUser, returning early..')
           setUnauthStatus({ keepUsername: true, log: "connNewCognitoUser, cognitoUser error" })
           return null
         }

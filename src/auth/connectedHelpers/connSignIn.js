@@ -1,7 +1,6 @@
 //import React, { useState, useEffect } from "react";
 
 import authenticateAsync from '../cognito/authenticate'
-//import { authContext } from "../contexts/AuthContext";
 import { getValuesFromSession } from '../cognito/config'
 import { resetStoredUserAuth } from '../cognito/localStorage'
 
