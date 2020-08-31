@@ -38,7 +38,7 @@ export default function({ username, password }) {
 
         // trying to handle this exception in parent component
         // sending cognitoUser along, so parent doesn t have to get it again..
-        reject({ ...err, cognitoUser })
+        reject({ ...err, authenticationDetails, cognitoUser })
 
       },
       newPasswordRequired: function(userAttributes, requiredAttributes) {

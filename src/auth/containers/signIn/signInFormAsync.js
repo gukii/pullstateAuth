@@ -169,7 +169,7 @@ const SignInForm = function() {
               console.log('cognitoUser:', cognitoUser)
 
 
-              const confirmed = await confirmSignUpAsync({ cognitoUser, setLoading: setLoading, showError: showError })
+              const confirmed = await confirmSignUpAsync({ cognitoUser, username, setLoading: setLoading, showError: showError })
               console.log('confirmed:', confirmed)
 
               if (confirmed) { 
@@ -316,7 +316,8 @@ const SignInForm = function() {
           e.preventDefault();
           console.log('onSubmit called..', e)
 
-          const auth = await doSignIn({ username:formUsername, password })
+          //const auth = await doSignIn({ username:formUsername, password })
+          doSignIn({ username:formUsername, password })
 
           //console.log('after connSignInAsync, auth.authenticated, auth.username:', auth.authenticated, auth.username)
           // need to wait for context state to be set by connSignInAsync.. will not show right away in the next few lines..!!

@@ -267,7 +267,7 @@ const SignUpForm = function() {
             // e.g. to confirm userAttributes
 
             // if cognito is setup to demand verification of email or phone number:
-            const confirmed = await confirmSignUpAsync({ cognitoUser: result, setLoading: setLoading, showError: showError })
+            const confirmed = await confirmSignUpAsync({ cognitoUser: result, username: resUsername, setLoading: setLoading, showError: showError })
             console.log('confirmed:', confirmed)
             
             if (confirmed) {

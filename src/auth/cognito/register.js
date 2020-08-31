@@ -8,6 +8,7 @@ import { getUserPool } from './config'
 // password
 // signupAttributes: fields to be stored in cognito. use exact, official cognito "Names", as they are setup within cognito!!
 // !! userPool (imported from config)
+
 export default function({ username, password, signupAttributes=[{ Name: "email", Value: "noemail" }] }) {
   const userPool = getUserPool()
   console.log(`register.js  username:${username}, password:${password}, signupAttributes:${JSON.stringify(signupAttributes)}, userPool:${JSON.stringify(userPool)}`)

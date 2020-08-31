@@ -34,7 +34,7 @@ export default function(username, code) {
 // cognitoUser = valid cognitoUser
 // code = confirmation code
 
-export function confirmCognitoUserAsync(cognitoUser, code=null) {
+export function confirmCognitoUserAsync(cognitoUser=null, code=null) {
 
   return new Promise((resolve, reject) => {
 
