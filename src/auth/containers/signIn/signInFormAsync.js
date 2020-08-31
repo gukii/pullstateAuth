@@ -102,7 +102,7 @@ const SignInForm = function() {
       setAuthStatus(newAuthObj) // this also stores to localStorage
 
       // could also set s.authenticated = true (this is not really used, all data is stored in auth object)
-      AuthStore.update([ s => s.username = username, s => s.userId = sess.idToken.payload.sub ])
+      //AuthStore.update([ s => s.username = username, s => s.userId = sess.idToken.payload.sub ])
 
       console.log('setUserId:', sess.idToken.payload.sub)
       return newAuthObj
@@ -145,7 +145,9 @@ const SignInForm = function() {
         const sess = await authenticateAsync({ username, password })
         setLoading(false)
 
-        return doSuccess(sess, "connSignInAsync, normal login flow success")
+        history.push(R.PRIVATE_HOME_ROUTE)
+        return doSuccess(sess, "signInFromAsync, signIn ok")
+
 
       }
       catch(e) {
@@ -169,7 +171,14 @@ const SignInForm = function() {
 
               const confirmed = await confirmSignUpAsync({ cognitoUser, setLoading: setLoading, showError: showError })
               console.log('confirmed:', confirmed)
-              break
+
+              if (confirmed) { 
+                history.push(R.PRIVATE_HOME_ROUTE)
+                return doSuccess(cognitoUser, "signInFromAsync, code confirmed")
+
+                //return cognitoUser
+              }
+              return null
 
 
         case 'NotAuthorizedException':
@@ -225,33 +234,65 @@ const SignInForm = function() {
                 //alert('U entered an invalid password!')
                 await psDialogAsync({ 
                   component: SimpleDialog, 
-                  title:"Password incorrect", 
+                  title:"Username or password incorrect", 
                   //text:"User sign in not possible. Try again next time.", 
                   submitLabel:"Ok", 
                   rejectVal:"", 
                   alwaysResolve: true 
                 })                 
-                return doFailure("Password not correct.." )
+                return doFailure("Username or password incorrect" )
 
-        // other case parts are listed in authenticate.js, the necessary code can be uncommented and pasted in here..
-
-        //'TooManyRequeserrtsException'
-
-        default:
-
-            if (!!e.message && !!e.code) {
+        case 'UserNotFoundException':
                 await psDialogAsync({ 
                   component: SimpleDialog, 
-                  title:"New Error", 
-                  text:`${e.message} (${e.code})`, 
+                  title:"Username or password incorrect", 
+                  //text:"User sign in not possible. Try again next time.", 
                   submitLabel:"Ok", 
                   rejectVal:"", 
                   alwaysResolve: true 
                 })                 
-                return doFailure('SignIn Error:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
-            }
-            //alert(JSON.stringify(e))
+                return doFailure("Username or password incorrect" )    
+          
+        case 'InvalidParameterException': //(e.g. password left blank)
+                await psDialogAsync({ 
+                  component: SimpleDialog, 
+                  title:"Fields not filled out correctly", 
+                  //text:"User sign in not possible. Try again next time.", 
+                  submitLabel:"Ok", 
+                  rejectVal:"", 
+                  alwaysResolve: true 
+                })                 
+                return doFailure("Fields not filled out correctly" ) 
+                                 
+        case 'TooManyRequestsException': 
+                await psDialogAsync({ 
+                  component: SimpleDialog, 
+                  title:"Too many requests", 
+                  text:"You have tried too often. If you keep trying, you will get blocked. Try again in a few hours.", 
+                  submitLabel:"Ok", 
+                  rejectVal:"", 
+                  alwaysResolve: true 
+                })                 
+                return doFailure("Too many requests." )                 
 
+        // other case parts are listed in authenticate.js, the necessary code can be uncommented and pasted in here..
+
+        //'TooManyRequestsException'
+
+        default:
+
+                if (JSON.stringify(e) !== '{}') {
+                    await psDialogAsync({ 
+                        component: SimpleDialog, 
+                        title:"New Error", 
+                        text: JSON.stringify(e), 
+                        submitLabel:"Ok", 
+                        rejectVal:"", 
+                        alwaysResolve: true 
+                    })              
+                    return doFailure("New Error:", JSON.stringify(e) )   
+                }
+                //return doFailure( JSON.stringify(e) )            
       }
     }
     finally {
