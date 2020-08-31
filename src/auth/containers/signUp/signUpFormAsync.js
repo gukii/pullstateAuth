@@ -3,17 +3,14 @@ import * as validator from "validator"
 
 
 
-/** Presentation/UI */
 //import { SignUpContainer } from "../../../AppStyles.styles.tw";
 import ErrorMessage from "../../errorMessage";
 
 
-/** Custom Hooks */
 import useErrorHandler from "../../custom-hooks/ErrorHandler";
 
 
 
-//import { authContext } from "../../contexts/AuthContextNoPs";
 //import { getValuesFromSession } from '../../cognito/config'
 
 import { useHistory, useLocation } from 'react-router-dom';  // added by chris, probably not the best place to put this..
@@ -22,12 +19,10 @@ import { useHistory, useLocation } from 'react-router-dom';  // added by chris, 
 //import { getValuesFromSession } from '../../cognito/config'
 import { resetStoredUserAuth } from '../../cognito/localStorage'
 
-import { getAttributeVerificationCodeAsync } from '../../cognito/verifyAttribute'
 
 
 import registerAsync from '../../cognito/register'
 //import { connSignUpAsync } from '../../connectedHelpers/connSignUp'
-import { connNewCognitoUser } from '../../connectedHelpers/connCognitoUser'
 
 
 import { R } from '../../routeNames'
@@ -38,8 +33,7 @@ import { ipLookUp } from './ipLookUp'
 
 import { getValuesFromSession } from '../../cognito/config'
 
-import { confirmCognitoUserAsync } from '../../cognito/confirmation'
-import resendConfirmation from '../../cognito/resendConfirmation'
+
 
 import { setAuthStatus, setUnauthStatus } from '../../connectedHelpers/authHelper'
 import { AuthStore } from "../../psStore/AuthStore";
@@ -54,6 +48,8 @@ import { confirmSignUpAsync } from '../signUp/confirmCodeFormAsync'
 
 const SignUpForm = function() {
 
+
+  const auth = AuthStore.useState(s => s.auth)
 
 
   const history = useHistory();    // added by chris
@@ -90,17 +86,7 @@ const SignUpForm = function() {
   }, [])
 
 
-  const {
-    auth,
-    setConfirmUserModalOpened,        // to open modal
-    setConfirmAttributeModalOpened,   // to open modal
 
-    setUsername,
-    setUserId,
-    setTimestamp,
-    setAuthStatus,
-    setUnauthStatus,
-  } = React.useContext(authContext);
 
 
   // if user is signed in, sign out and clear all stored user data
@@ -151,6 +137,8 @@ const SignUpForm = function() {
     // triggers all pullstate related functions on successful login or login flow action (e.g. password reset, confirmation code entered, mfa ..)
     // sess = cognitoUser obj returned by cognito sign-in api call
 
+
+
     function doSuccess(sess, log='') {
       console.log(log)
 
@@ -159,7 +147,7 @@ const SignUpForm = function() {
       setAuthStatus(newAuthObj) // this also stores to localStorage
 
       // could also set s.authenticated = true
-      AuthStore.update([ s => s.username = formUsername, s => s.userId = sess.idToken.payload.sub ])
+      //AuthStore.update([ s => s.username = formUsername, s => s.userId = sess.idToken.payload.sub ])
 
       console.log('setUserId:', sess.idToken.payload.sub)
       return newAuthObj
@@ -241,6 +229,17 @@ const SignUpForm = function() {
 
         console.log('doSignUp, sucessful sign up:', result)
 
+        // EMAIL sent to "s***@m***.com"
+        await psDialogAsync({ 
+          component: SimpleDialog, 
+          title:"Confirmation code sent", 
+          text: `${result.codeDeliveryDetails.DeliveryMedium} sent to ${result.codeDeliveryDetails.Destination}`, 
+          submitLabel:"Ok", 
+          rejectVal:"", 
+          alwaysResolve: true 
+        })          
+
+
         // signup call successful, but user not yet confirmed !!!
         // also no user-session at this point
         if (result && result.user) {
@@ -254,7 +253,8 @@ const SignUpForm = function() {
             const resUserId = result.userSub
 
             // resets auth object and inject username + userId into new auth object, writes this object into localStorage
-            setUnauthStatus({ props: {username: resUsername, userId: resUserId}, log:"signUp Ok before confirmCode" })
+            //setUnauthStatus({ props: {username: resUsername, userId: resUserId}, log:"signUp Ok before confirmCode" })
+            setUnauthStatus({ props: {username: resUsername}, log:"signUp Ok before confirmCode" })
 
             console.log('doSignUp setUserId:', result.userSub)
             //setUserId(result.userSub);
@@ -266,9 +266,17 @@ const SignUpForm = function() {
           	// console.log('user name is ' + cognitoUser.getUsername());
             // e.g. to confirm userAttributes
 
-            await confirmCodeFormAsync({ cognitoUser: result })
-            // user will not be able to log in without confirmation:
-            // when trying to login err.code = "UserNotConfirmedException"
+            // if cognito is setup to demand verification of email or phone number:
+            const confirmed = await confirmSignUpAsync({ cognitoUser: result, setLoading: setLoading, showError: showError })
+            console.log('confirmed:', confirmed)
+            
+            if (confirmed) {
+              history.push(R.SIGNIN_ROUTE)
+              return true
+            }
+            return null
+            //doSuccess()
+
 
         }
 
@@ -278,49 +286,58 @@ const SignUpForm = function() {
       catch(e) {
         console.log('doSignUp err:', e)
 
-        setLoading(false);
-        showError(e.message);
+        setLoading(false)
 
-        if (!!e.message && !!e.code) {
-          await psDialogAsync({ 
-            component: SimpleDialog, 
-            title:"SignUp Error", 
-            text:`${e.message} (${e.code})`, 
-            submitLabel:"Ok", 
-            rejectVal:"", 
-            alwaysResolve: true 
-          })                 
-          return doFailure('SignUp Error:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
-        }
-       
-/*
-        UserNotFoundException // try logging in with a user that does not exist
+        switch (e.code) {
+            
+          case 'InvalidParameterException': //(e.g. password left blank)
+                  await psDialogAsync({ 
+                    component: SimpleDialog, 
+                    title:"Fields not filled out correctly", 
+                    //text:"User sign in not possible. Try again next time.", 
+                    submitLabel:"Ok", 
+                    rejectVal:"", 
+                    alwaysResolve: true 
+                  })                 
+                  return doFailure("Fields not filled out correctly" ) 
+                                  
+          case 'TooManyRequestsException': 
+                  await psDialogAsync({ 
+                    component: SimpleDialog, 
+                    title:"Too many requests", 
+                    text:"You have tried too often. If you keep trying, you will get blocked. Try again in a few hours.", 
+                    submitLabel:"Ok", 
+                    rejectVal:"", 
+                    alwaysResolve: true 
+                  })                 
+                  return doFailure("Too many requests." )    
+                  
+          case 'UsernameExistsException': 
+                  await psDialogAsync({ 
+                    component: SimpleDialog, 
+                    title:"Username already exists", 
+                    text:"Choose a different username", 
+                    submitLabel:"Ok", 
+                    rejectVal:"", 
+                    alwaysResolve: true 
+                  })                 
+                  return doFailure("Username already exists." )                      
 
-        CodeDeliveryFailureException // This exception is thrown when a verification code fails to deliver successfully.
-
-        InvalidPasswordException
-
-        InvalidParameterException: // e.g. password not filled out as required (was left empty)
-
-        NotAuthorizedException  // user is not authorized
-
-        TooManyRequestsException  // client tried too often
-
-        UsernameExistsException // user already exists
-            */
-
-        setUnauthStatus({ log:"doSignUp error"})
-        resetStoredUserAuth()
-
-        alert(e.message || JSON.stringify(e))
-
-
-
-        // where is that error messzge getting shown?
-
-        //console.log('after authObj reset, authObj:', getAuthObj() )
-        //code: 'PasswordResetRequiredException'
-        return null
+          default:
+                  if (JSON.stringify(e) !== '{}') {
+                    await psDialogAsync({ 
+                        component: SimpleDialog, 
+                        title:"New Error", 
+                        text: JSON.stringify(e), 
+                        submitLabel:"Ok", 
+                        rejectVal:"", 
+                        alwaysResolve: true 
+                    })              
+                    return doFailure("New Error:", JSON.stringify(e) )  
+                  }
+                  //return doFailure( JSON.stringify(e) )  
+        }       
+        
       }
       finally {
         console.log('doSignUp finally..')
@@ -331,6 +348,9 @@ const SignUpForm = function() {
 
   return (
     <div>
+
+      { loading && <div className="loader centered"/> }      
+
       <form
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
         onSubmit={ (e) => {
@@ -489,8 +509,27 @@ const SignUpForm = function() {
 
 export default SignUpForm;
 
-/*
 
+
+
+/*
+        UserNotFoundException // try logging in with a user that does not exist
+
+        CodeDeliveryFailureException // This exception is thrown when a verification code fails to deliver successfully.
+
+        InvalidPasswordException
+
+        InvalidParameterException: // e.g. password not filled out as required (was left empty)
+
+        NotAuthorizedException  // user is not authorized
+
+        TooManyRequestsException  // client tried too often
+
+        UsernameExistsException // user already exists
+            
+          
+
+  
 
 // as specified in:
 // https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
@@ -515,6 +554,21 @@ export default SignUpForm;
 
 
     or are we storing somewhere else?
+
+
+    default:
+          if (!!e.message && !!e.code) {
+            await psDialogAsync({ 
+              component: SimpleDialog, 
+              title:"SignUp Error", 
+              text:`${e.message} (${e.code})`, 
+              submitLabel:"Ok", 
+              rejectVal:"", 
+              alwaysResolve: true 
+            })                 
+            return doFailure('SignUp Error:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
+          }
+
 
 
 

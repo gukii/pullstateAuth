@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Redirect } from "react-router";
 
-//import SignUpForm from "./signUpFormAsync";
+import SignUpForm from "./signUpFormAsync";
 
 
 //## SES is still in sandbox.
@@ -56,7 +56,8 @@ const SignUp = function() {
         />
 
         <SignUpForm />
-*/}        
+*/}      
+        <SignUpForm />  
       </>
   )
 }
