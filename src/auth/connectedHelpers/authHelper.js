@@ -24,7 +24,8 @@ export const setAuthStatus = (userAuth) => {
 
 // keepUsername: keeps the usernam when "auth" gets reset/overwritten by the values of EMPTY_USER_AUTH
 // log: just a log message that can be written out to console
-export const setUnauthStatus = ({ keepUsername=false, log='' }) => {
+// newUsername: injects a new username into the empty auth object (e.g. used at signUp to remember new username, for creating cogntioUser)
+export const setUnauthStatus = ({ keepUsername=false, log='', props=null }) => {
 
   console.log('AuthStore:', AuthStore)
   //const auth = AuthStore.useState(s => s.auth)
@@ -32,7 +33,13 @@ export const setUnauthStatus = ({ keepUsername=false, log='' }) => {
   const auth = AuthStore.currentState.auth
 
   console.log('setUnauthStatus, log:', log, ' keepUsername:', keepUsername, ' auth.username:', auth.username)
-  const emptyObj = keepUsername && !!auth.username && auth.username.length > 0 ? { ...EMPTY_USER_AUTH, username: auth.username } : EMPTY_USER_AUTH
+  const emptyObj = keepUsername && !!auth.username && auth.username.length > 0 
+                    ? !!props 
+                        ? { ...EMPTY_USER_AUTH, ...props, username: auth.username } 
+                        : { ...EMPTY_USER_AUTH, username: auth.username }
+                    : !!props 
+                        ? { ...EMPTY_USER_AUTH, ...props } 
+                        : EMPTY_USER_AUTH
 
   resetStoredUserAuth( emptyObj )
   //setAuth( emptyObj );

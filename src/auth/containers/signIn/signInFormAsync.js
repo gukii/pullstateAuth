@@ -42,7 +42,7 @@ import { AuthStore } from "../../psStore/AuthStore";
 
 
 import { ConfirmationCodeDialog, PsRenderDialog, psDialogAsync, InputFunction, SimplePrompt, SimpleDialog } from '../modalPortal/modalPortal'
-
+import { confirmSignUpAsync } from '../signUp/confirmCodeFormAsync'
 
 //
 // signIn form that uses promisified cognito authenticate function
@@ -69,29 +69,6 @@ const SignInForm = function() {
   const auth = AuthStore.useState(s => s.auth)
   //const auth = AuthStore.auth  
 
-  /*
-  const {
-    auth,
-    openConfirmationCodeModal,
-    setUsername,
-    setUserId,
-    setTimestamp,
-    setAuthStatus,
-    setUnauthStatus,
-  } = React.useContext(authContext);
-*/
-  /*
-    isAuthenticated: false,
-
-    username: null,
-    userId: null,
-
-    auth: EMPTY_USER_AUTH,
-
-    userAccountVerified: false,
-    attributeVerified: false,
-    mfaVerified: false,    
-  */
 
 
   if (auth.authenticated) {
@@ -113,26 +90,25 @@ const SignInForm = function() {
   // SIGN-IN LOGIC
   async function doSignIn({ username='', password='' }) {
 
+
+
     // triggers all pullstate related functions on successful login or login flow action (e.g. password reset, confirmation code entered, mfa ..)
     // sess = cognitoUser obj returned by cognito sign-in api call
     function doSuccess(sess, log='') {
       console.log(log)
 
       const newAuthObj = { ...getValuesFromSession(sess), username, authenticated:true }  // just checks correctness and extracts values from session variable
-      //setSession(sess)
-      //setCognitoUser(sess)
+
       setAuthStatus(newAuthObj) // this also stores to localStorage
 
-      // setAuthStatus does this:
-      //storeUserAuth(userAuth)
-      //AuthStore.update(s => { s.auth = newAuthObj })
-
-      // could also set s.authenticated = true
+      // could also set s.authenticated = true (this is not really used, all data is stored in auth object)
       AuthStore.update([ s => s.username = username, s => s.userId = sess.idToken.payload.sub ])
 
       console.log('setUserId:', sess.idToken.payload.sub)
       return newAuthObj
     }
+
+
 
     // triggers all pullstate related functions on failure
     function doFailure(log='') {
@@ -143,6 +119,8 @@ const SignInForm = function() {
       return null
     }
 
+
+
     // called by the "SignInForm" function below
 
       console.log('connSignInAsync doSignIn called with username/password:', username, password)
@@ -151,13 +129,13 @@ const SignInForm = function() {
         //alert('Enter a username and password!')
         await psDialogAsync({ 
           component: SimpleDialog, 
-          title:"Please enter a password", 
+          title:"Please enter a username and password", 
           //text:"User sign in not possible. Try again next time.", 
           submitLabel:"Ok", 
           rejectVal:"", 
           alwaysResolve: true 
         })           
-        return null
+        return doFailure("Please enter a username and password" )
       }
 
       // confirmation code for gukii@yahoo.com 019785
@@ -178,83 +156,21 @@ const SignInForm = function() {
           case 'UserNotConfirmedException':
               console.log(e)
               //const confirmationCode = prompt("Please enter confirmation code:", "");
-              
-              // needs to be in a try() catch(e)...
-              const confirmationCode = await psDialogAsync({ 
-                component: SimplePrompt, 
-                title:"Confirmation Code", 
-                text:"Please enter the confirmation code sent to your phone or email.", 
-                label:"Code:", 
-                submitLabel:"Verify", 
-                cancelLabel:"Cancel", 
-                rejectVal:"", 
-                alwaysResolve: true 
-              })
-
 
               if (!!e.cognitoUser) {
-
               } else {
                 return doFailure( !!e.code ? e.code : "connSignInAsync, confirmation code flow failure, also no cognitoUser" )
               }
 
+              // cognitoUser is added to promise reject response in "authenticate.js"
               const cognitoUser = e.cognitoUser
               console.log('cognitoUser:', cognitoUser)
-              console.log('entered confirmationCode:', confirmationCode)
 
-              if (confirmationCode === null || confirmationCode === undefined || confirmationCode.length === 0) {
-                //alert("Confirmation code not entered")
-                await psDialogAsync({ 
-                  component: SimpleDialog, 
-                  title:"Confirmation Code not entered", 
-                  text:"User sign in not possible. Try again next time.", 
-                  submitLabel:"Ok", 
-                  rejectVal:"", 
-                  alwaysResolve: true 
-                })                
-                return doFailure("Confirmation code not entered" )
-              }
 
-              try {
-                setLoading(true)
-                const sess = await confirmCognitoUserAsync(cognitoUser, confirmationCode)
-                setLoading(false)
-                return doSuccess(sess, "connSignInAsync, confirmation code flow success")
-              }
-              catch (err) {
-                setLoading(false)
-                // ExpiredCodeException   // err.message: Invalid code provided, please request a code again.
-                if (err.code === 'CodeMismatchException') {
-                  return doFailure("Confirmation code was not correct." )
-                }
-                
-                if (err.code === 'ExpiredCodeException') {
-                  const res = await psDialogAsync({ 
-                    component: SimpleDialog, 
-                    title:"Confirmation Code Expired", 
-                    text:"Please request a new confirmation code.", 
-                    submitLabel:"Request new code", 
-                    cancelLabel:"Cancel", 
-                    rejectVal:"", 
-                    alwaysResolve: true 
-                  }) 
-                  if (res === "submit") {
-                    console.log('request new confirmation code here..')
-
-                    try {
-                      await resendConfirmation(cognitoUser)
-                      return doFailure("New confirmation code requested, check your sms or email." )
-                    }
-                    catch (reqErr) {
-                      return doFailure("Error requesting new confirmation code:", reqErr )
-                    }
-    
-                    //return doFailure("New confirmation code requested, check your sms or email." )
-                  }                   
-                }
-                return doFailure( !!err.code ? err.code : "Confirmation code expired, request a new one." )
-              }
+              const confirmed = await confirmSignUpAsync({ cognitoUser, setLoading: setLoading, showError: showError })
+              console.log('confirmed:', confirmed)
               break
+
 
         case 'NotAuthorizedException':
 
@@ -268,9 +184,7 @@ const SignInForm = function() {
                 rejectVal:"", 
                 alwaysResolve: true 
               })                 
-
-              return doFailure( !!e.code ? e.code : "Password not correct" )
-              break
+              return doFailure("Username or Password not correct" )
 
 
         case 'PasswordResetRequiredException':
@@ -307,8 +221,6 @@ const SignInForm = function() {
                   return doFailure("CompleteNewPasswordChallenge password reset failure" )
                 }
 
-                break
-
         case 'InvalidPasswordException':
                 //alert('U entered an invalid password!')
                 await psDialogAsync({ 
@@ -320,9 +232,10 @@ const SignInForm = function() {
                   alwaysResolve: true 
                 })                 
                 return doFailure("Password not correct.." )
-                break
 
         // other case parts are listed in authenticate.js, the necessary code can be uncommented and pasted in here..
+
+        //'TooManyRequeserrtsException'
 
         default:
 
@@ -335,7 +248,7 @@ const SignInForm = function() {
                   rejectVal:"", 
                   alwaysResolve: true 
                 })                 
-                return doFailure('!!! connSignInAsync err:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
+                return doFailure('SignIn Error:' + !!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
             }
             //alert(JSON.stringify(e))
 
@@ -454,5 +367,110 @@ export default SignInForm;
           <span class="relative inline-flex rounded-full h-3 w-3 bg-pink-500"></span>
         </span>        
         Loading...
-      </>  }        
-*/
+      </>  }       
+      
+      
+
+
+
+
+
+
+
+
+/*
+              // needs to be in a try() catch(e)...
+              const confirmationCode = await psDialogAsync({ 
+                component: SimplePrompt, 
+                title:"Confirmation Code", 
+                text:"Please enter the confirmation code sent to your phone or email.", 
+                label:"Code:", 
+                submitLabel:"Verify", 
+                cancelLabel:"Cancel", 
+                rejectVal:"", 
+                alwaysResolve: true 
+              })
+
+              console.log('entered confirmationCode:', confirmationCode)              
+
+
+
+              if (confirmationCode === null || confirmationCode === undefined || confirmationCode.length === 0) {
+                //alert("Confirmation code not entered")
+                await psDialogAsync({ 
+                  component: SimpleDialog, 
+                  title:"Confirmation Code not entered", 
+                  text:"User sign in not possible. Try again next time.", 
+                  submitLabel:"Ok", 
+                  rejectVal:"", 
+                  alwaysResolve: true 
+                })                
+                return doFailure("Confirmation code not entered" )
+              }
+
+              try {
+                setLoading(true)
+                const result = await confirmCognitoUserAsync(cognitoUser, confirmationCode)
+                setLoading(false)
+
+                if (result === "SUCCESS") {
+
+                  await psDialogAsync({ 
+                    component: SimpleDialog, 
+                    title:"SignUp Success", 
+                    text:"Your signup was successful and is confirmed.", 
+                    submitLabel:"Ok", 
+                    rejectVal:"", 
+                    alwaysResolve: true 
+                  })  
+ 
+          
+                  // because userAccountVerified-useEffect above does not catch..
+                  history.push(R.SIGNIN_ROUTE)
+                  return true
+                  //return doSuccess(result, "connSignInAsync, confirmation code flow success")
+
+          
+                } else {
+                  showError("There was a problem confirming the user");
+                  return doFailure("There was a problem confirming the sign up" )
+
+                }
+
+              }
+              catch (err) {
+                setLoading(false)
+                // ExpiredCodeException   // err.message: Invalid code provided, please request a code again.
+                if (err.code === 'CodeMismatchException') {
+                  return doFailure("Confirmation code was not correct." )
+                }
+                
+                if (err.code === 'ExpiredCodeException') {
+                  const res = await psDialogAsync({ 
+                    component: SimpleDialog, 
+                    title:"Confirmation Code Expired", 
+                    text:"Please request a new confirmation code.", 
+                    submitLabel:"Request new code", 
+                    cancelLabel:"Cancel", 
+                    rejectVal:"", 
+                    alwaysResolve: true 
+                  }) 
+                  if (res === "submit") {
+                    console.log('request new confirmation code here..')
+
+                    try {
+                      await resendConfirmation(cognitoUser)
+                      return doFailure("New confirmation code requested, check your sms or email." )
+                    }
+                    catch (reqErr) {
+                      return doFailure("Error requesting new confirmation code:", reqErr )
+                    }
+    
+                    //return doFailure("New confirmation code requested, check your sms or email." )
+                  }                   
+                }
+                return doFailure( !!err.code ? err.code : "Confirmation code expired, request a new one." )
+              }
+              break
+*/      
+
