@@ -16,7 +16,7 @@ import resendConfirmation from '../../cognito/resendConfirmation'
 
 
 
-export async function confirmSignUpAsync({ cognitoUser=null, showError=(e)=>console.log(e), setLoading=(e)=>console.log('loading set:',e), log='' }) {
+export async function confirmSignUpAsync({ cognitoUser=null, username=null, showError=(e)=>console.log(e), setLoading=(e)=>console.log('loading set:',e), log='' }) {
 
 
     return new Promise( async (resolve, reject) => {
@@ -42,7 +42,10 @@ export async function confirmSignUpAsync({ cognitoUser=null, showError=(e)=>cons
         if (log.length > 0) console.log(`confirmSignUpAsync, log: ${log}`)
 
 
-        const _cognitoUser = cognitoUser || await connNewCognitoUser({ setUnauthStatus, username:null, log:"for confirmSignUpAsync" })
+
+        //const _cognitoUser = cognitoUser || await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
+        const _cognitoUser = await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
+
         if (_cognitoUser === null) {
             doFailure("ERROR ConfirmationCodeForm, confirmation code flow failure, also no cognitoUser" )
         }
@@ -92,6 +95,7 @@ export async function confirmSignUpAsync({ cognitoUser=null, showError=(e)=>cons
         try {
 
             setLoading(true)
+
             const result = await confirmCognitoUserAsync(_cognitoUser, confirmationCode)
             console.log('confirmCognitoUserAsync result:', result)
 
