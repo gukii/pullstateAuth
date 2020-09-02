@@ -232,7 +232,7 @@ import { setAuthStatus, setUnauthStatus } from './connectedHelpers/authHelper'
     }
 
   }, [auth])
-*/
+
 
 ///////////////////////////////////////////////// END OF SESSION-RENEW FUNCTIONALITY // 
 
