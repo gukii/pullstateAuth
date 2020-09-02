@@ -11,7 +11,7 @@ import { ConfirmationCodeDialog, PsRenderDialog, psDialogAsync, InputFunction, S
 
 
 import { setUnauthStatus } from '../../connectedHelpers/authHelper'
-import { resetStoredUserAuth } from '../../cognito/localStorage'
+import { resetStoredUserAuth } from '../../connectedHelpers/localStorage'
 import resendConfirmation from '../../cognito/resendConfirmation'
 
 

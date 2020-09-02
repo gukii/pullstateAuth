@@ -1,6 +1,6 @@
 //import React, { useEffect, useState } from "react";
 import {
-    CognitoUser,
+    //CognitoUser,
     CognitoRefreshToken,
   } from "amazon-cognito-identity-js";
 
@@ -8,7 +8,7 @@ import {
 import { showExpirationTime } from '../cognito/showExpirationTime'
 
 import { ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION, getValuesFromSession, getUserPool } from "../cognito/config";
-import { getStoredUsername } from "../cognito/localStorage";
+//import { getStoredUsername } from "../connectedHelpers/localStorage";
 import refreshSessionAsync from '../cognito/refreshSession'
 import msUntilCognitoTS from '../cognito/msUntilCognitoTS'
 
@@ -48,6 +48,8 @@ export async function connRenewSessionAsync({ setUnauthStatus, setAuthStatus, us
         // DO I STILL HAVE A "USER" AFTER EXPIRATION?
         // SHOULD WE SIGN-IN, OR JUST RENEW THE SESSION?
 
+        forceUpdate = true
+
         // setUnauthStatus({ keepUsername: true, log: "renewSession, token already expired" })
       }
 
@@ -62,12 +64,6 @@ export async function connRenewSessionAsync({ setUnauthStatus, setAuthStatus, us
         const _cognitoUser = await connNewCognitoUser({ setUnauthStatus, username, log:"for connRenewSession cognitoUser" })
         if (_cognitoUser === null) return null
 
-        //const _username = _cognitoUser.username
-
-
-        //console.log('>> renewSession: after new CognitoUser:', _cognitoUser)
-        // could do: setCognitoUser(_cognitoUser)
-
 
         // need to call this, because the stored refreshToken is missing the "getToken" function
         const newRefreshToken = new CognitoRefreshToken({
@@ -81,7 +77,6 @@ export async function connRenewSessionAsync({ setUnauthStatus, setAuthStatus, us
           return null
         }
 
-        // could do: setSession(sess)
 
 
         const newAuthObj = { ...getValuesFromSession(newSession), username: _username }  // just checks correctness and extracts values from session variable
@@ -90,6 +85,7 @@ export async function connRenewSessionAsync({ setUnauthStatus, setAuthStatus, us
         //setCognitoUser(_cognitoUser)
 
         if (setUsername !== null) setUsername(_username)
+
         setAuthStatus(newAuthObj)     // this stores to localStorage
         return newAuthObj
       }

@@ -6,15 +6,15 @@ import {
   } from "amazon-cognito-identity-js";
 
 import { cognitoTSexpired } from './validateToken'
-import { getStoredUsername } from './localStorage'
+import { getStoredUsername } from '../connectedHelpers/localStorage'
 
 // TO TEST THE AUTO-SESSION-RENEWAL, SET EXPIRATION TIMER TO: (59*60)+50   // THIS WILL RE-NEW THE SESSION AFTER 10 SECS
 // 1 hour - 1 minute, in seconds: (59*60) seconds
-//export const TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION = (59*60)+50 // = 59min // normal accessTokens are valid for one hour, setting to 59*60, allows the set timeout check 1 minute after token receival   // should be about 10, secs before token expires to re-new token while still valid
-//export const ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION = TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION / 2
+export const TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION = (59*60)+50 // = 59min // normal accessTokens are valid for one hour, setting to 59*60, allows the set timeout check 1 minute after token receival   // should be about 10, secs before token expires to re-new token while still valid
+export const ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION = TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION / 2
 
-export const TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION = 20 // this will re-new session 20 secs before token expiration
-export const ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION = 3  // this will allow session renewal 3 secs before token expiration
+//export const TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION = 20 // this will re-new session 20 secs before token expiration
+//export const ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION = 3  // this will allow session renewal 3 secs before token expiration
 
 
 const USER_POOL_ID = process.env.REACT_APP_COGNITO_USER_POOL_ID
@@ -38,15 +38,24 @@ export const EMPTY_USER_AUTH = Object.freeze({
 
     authenticated: false,
 
-    idTokenExp: 0,
+    idTokenExp: 0,       
     accessTokenExp: 0,
 
-    username: getStoredUsername()
+    username: getStoredUsername()   // username is good to have for creating cognitoUsers (could also extract them from id jwt token..)
 });
 
 
 // global var for userPool
 let userPool = new CognitoUserPool(POOL_DATA);
+
+
+
+// !!!!! 
+// getting userPool.getCurrentUser() is sketchy:
+//
+// this only works with sessions enabled in amaon-cognito-identity-js library
+// which likely requires the use of an identity pool (i currently dont use identity pools)
+// !!!!
 
 
 
@@ -117,6 +126,14 @@ export const getUserPool = () => {
 export const setUserPool = (pool) => {
   userPool = pool
 }
+
+
+// !!!!! 
+// getting userPool.getCurrentUser() is sketchy:
+//
+// this only works with sessions enabled in amaon-cognito-identity-js library
+// which likely requires the use of an identity pool (i currently dont use identity pools)
+// !!!!
 
 export const getCurrentUser = ({ log="" }) => {
 

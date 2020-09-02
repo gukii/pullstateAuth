@@ -4,7 +4,7 @@ import * as validator from "validator"
 
 
 //import { SignUpContainer } from "../../../AppStyles.styles.tw";
-import ErrorMessage from "../../errorMessage";
+import ErrorMessage from "../../custom-hooks/errorMessage";
 
 
 import useErrorHandler from "../../custom-hooks/ErrorHandler";
@@ -17,7 +17,7 @@ import { useHistory, useLocation } from 'react-router-dom';  // added by chris, 
 //import { Redirect } from "react-router";
 //import { getRouteStateVar } from '../routeHelpers'
 //import { getValuesFromSession } from '../../cognito/config'
-import { resetStoredUserAuth } from '../../cognito/localStorage'
+import { resetStoredUserAuth } from '../../connectedHelpers/localStorage'
 
 
 

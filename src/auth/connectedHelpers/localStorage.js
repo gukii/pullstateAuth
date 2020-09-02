@@ -7,8 +7,6 @@ export const USER_AUTH_KEY = "UserAuth";
 
 
 
-
-
 export const getStoredUserAuth = function({ log='', emptyObj=null }) {
 
   try {

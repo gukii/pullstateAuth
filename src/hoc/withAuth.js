@@ -7,7 +7,7 @@ import { setUnauthStatus } from '../auth/connectedHelpers/authHelper'
 
 import { R } from '../auth/routeNames' // only used for default value of authFailRoute, could be set to '/'
 //import { EMPTY_USER_AUTH } from '../auth/cognito/config'
-//import { getStoredUserAuth } from '../auth/cognito/localStorage'
+//import { getStoredUserAuth } from '../auth/connectedHelpers/localStorage'
 
 // params: authFailRoute (or the one stated in src/auth/routeNames.js will be used), is usually some kind of signIn route
 

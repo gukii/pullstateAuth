@@ -4,7 +4,7 @@ import { useHistory, useLocation } from 'react-router-dom'
 import { R } from '../auth/routeNames' // only used for default value of authFailRoute, could be set to '/'
 import { getAuthObj, setAuthObj, validateAuthObj, authObjValid, resetAuthObj, getValuesFromSession, getCurrentUserSession, setCurrentUserSession, EMPTY_USER_AUTH } from '../auth/cognito/config'
 
-import { getStoredUserAuth } from '../auth/cognito/localStorage'
+import { getStoredUserAuth } from '../auth/connectedHelpers/connectedHelpers/localStorage'
 import { jwtExpired, jwtToJson, cognitoTSexpired } from '../auth/cognito/validate'
 import getSessionAsync from '../auth/cognito/getSession'
 

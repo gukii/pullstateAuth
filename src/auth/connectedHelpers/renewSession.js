@@ -19,7 +19,7 @@ import { setAuthStatus, setUnauthStatus } from './authHelper'
 
 /*
 import { TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION, ALLOW_SESSION_RENEW_SECS_BEFORE_EXPIRATION, EMPTY_USER_AUTH, getCurrentUser, getValuesFromSession, getUserPool } from "../cognito/config";
-import { getStoredUserAuth } from "../cognito/localStorage";
+import { getStoredUserAuth } from "../connectedHelpers/localStorage";
 import refreshSessionAsync from '../cognito/refreshSession'
 import getSessionAsync from '../cognito/getSession'
 */
