@@ -4,10 +4,10 @@ import {
 
 
 import { getUserPool } from "../cognito/config";
-import { getStoredUsername } from "../cognito/localStorage";
+import { getStoredUsername } from "./localStorage";
 
 
-
+// gets username from 
 
 export function connGetCognitoUsername({ setUnauthStatus, username=null, log="" }) {
 
@@ -30,8 +30,10 @@ export async function connNewCognitoUser({ setUnauthStatus, username=null, log="
 
         if (log.length > 0) console.log(`connNewCognitoUser, log: ${log}`)
 
-
-        if (!username) return
+        if (!username) {
+          console.log(`error: no username for connNewCognitoUser, returning early..`)
+          return
+        }
 
         // could do: setUsername(_username)
 

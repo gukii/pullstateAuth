@@ -1,5 +1,5 @@
 
-import { storeUserAuth, resetStoredUserAuth } from "../cognito/localStorage";
+import { storeUserAuth, resetStoredUserAuth } from "../connectedHelpers/localStorage";
 
 import { EMPTY_USER_AUTH } from "../cognito/config";
 import { AuthStore } from "../psStore/AuthStore";

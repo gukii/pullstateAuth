@@ -28,87 +28,8 @@ import { R } from './routeNames'
 
 
 
-import { AuthStore } from "./psStore/AuthStore";
-
-import { showExpirationTime } from './cognito/showExpirationTime'
-import { connRenewSessionAsync } from './connectedHelpers/connRenewSession'
-import msUntilCognitoTS from './cognito/msUntilCognitoTS'
-import { TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION } from "./cognito/config";
-import { setAuthStatus, setUnauthStatus } from './connectedHelpers/authHelper'
-
-
-
 // only goes one level deep, due to the map statement. need different loop to go thru deeper nedsted tree
 export default function RouterExample() {
-
-
-
-  const auth = AuthStore.useState(s => s.auth)
-
-  useEffect( ()=> {
-    console.log('main router effect called, auth:', auth)
-    if (!auth.authenticated && !!auth.username && auth.username.length > 0) {
-      console.log('got username, but not authenticated. trying to renew session..', auth)
-      connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, setUsername:null, auth, forceUpdate:false, log:'called by ROUTER' })
-
-    }
-  },[auth])
-
-
-
-
-  useEffect( ()=> {
-    if (!auth.authenticated) return
-    if (auth.accessTokenExp === 0) return
-
-    console.log('TIMER EFFECT: auth.authenticated:', auth.authenticated, ' auth.accessTokenExp:', auth.accessTokenExp)
-
-
-    if (auth.accessTokenExp > 0) {
-      // we are logged in and have an expiration date of the accessToken
-      console.log('TIMER EFFECT: access token expiration time:', showExpirationTime(auth.accessTokenExp) )
-      console.log('TIMER EFFECT: sessionRenew trigger set at:', showExpirationTime(auth.accessTokenExp-TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION) )
-
-      const timerDuration = msUntilCognitoTS({ cognitoTS: auth.accessTokenExp, margin: TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION })
-
-      console.log('TIMER EFFECT: duration until sessionRenew trigger in ms:', timerDuration, ' in secs:', timerDuration/1000, ' in mins:', timerDuration/1000/60)
-
-      const timer = setTimeout( () => {
-        console.log('TIMER EFFECT: RENEW ACCESS TOKEN PLACEHOLDER, resetting authObj.. ')
-        connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, setUsername:null, auth, forceUpdate:false, log:'called by TIMER EFFECT' })
-      }, timerDuration );
-
-      // clean up timer on unmount of effect
-      return () => clearTimeout(timer);
-
-    }
-
-    //console.log('accessToken is 0, not setting TIMER EFFECT to renew session')
-
-  }, [auth])
-
-
-  // check access token / id token expiration time any time the access token (and its related accessTokenExp) gets updated
-  // sign the user out, once the session is expired
-
-  useEffect( ()=> {
-
-    const timeUntilAccessTokenExpiration = msUntilCognitoTS({ cognitoTS: auth.accessTokenExp, margin: 0 })
-    const timeUntilIdTokenExpiration = msUntilCognitoTS({ cognitoTS: auth.idTokenExp, margin: 0 })
-
-    // session expired
-    if (timeUntilAccessTokenExpiration <= 0 || timeUntilIdTokenExpiration <= 0) {
-
-      console.log('session expiration time check, session expired, trying to connRenewSession..')
-      connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, auth, log:'connRenew detected access/id token expired' })
-
-    } else {
-      console.log('session not expired yet..')
-    }
-
-  }, [auth])
-
-
 
 
   return (
@@ -211,6 +132,115 @@ export default function RouterExample() {
 */
 
 /*
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { AuthStore } from "./psStore/AuthStore";
+
+import { showExpirationTime } from './cognito/showExpirationTime'
+import { connRenewSessionAsync } from './connectedHelpers/connRenewSession'
+import msUntilCognitoTS from './cognito/msUntilCognitoTS'
+import { TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION } from "./cognito/config";
+import { setAuthStatus, setUnauthStatus } from './connectedHelpers/authHelper'
+
+
+
+/* this just got moved to psStore/AuthStore, still testing how well it works there
+  WORKS
+  
+  //////////////////////////////////////////////////////////////
+  // FUNCTIONALITY TO AUTO-RENEW SESSIONS BEFORE THEY EXPIRE (SO SERVER-SENT-EVENTS ALWAYS HAVE A VALID JWT TOKEN)
+  // maybe should put this somewhere else..
+  //
+
+  const auth = AuthStore.useState(s => s.auth)
+
+  useEffect( ()=> {
+    console.log('main router effect called, auth:', auth)
+    if (!auth.authenticated && !!auth.username && auth.username.length > 0) {
+      console.log('got username, but not authenticated. trying to renew session..', auth)
+      connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, setUsername:null, auth, forceUpdate:false, log:'called by ROUTER' })
+
+    }
+  },[auth])
+
+
+
+
+  useEffect( ()=> {
+    if (!auth.authenticated) return
+    if (auth.accessTokenExp === 0) return
+
+    console.log('TIMER EFFECT: auth.authenticated:', auth.authenticated, ' auth.accessTokenExp:', auth.accessTokenExp)
+
+
+    if (auth.accessTokenExp > 0) {
+      // we are logged in and have an expiration date of the accessToken
+      console.log('TIMER EFFECT: access token expiration time:', showExpirationTime(auth.accessTokenExp) )
+      console.log('TIMER EFFECT: sessionRenew trigger set at:', showExpirationTime(auth.accessTokenExp-TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION) )
+
+      const timerDuration = msUntilCognitoTS({ cognitoTS: auth.accessTokenExp, margin: TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION })
+
+      console.log('TIMER EFFECT: duration until sessionRenew trigger in ms:', timerDuration, ' in secs:', timerDuration/1000, ' in mins:', timerDuration/1000/60)
+
+      const timer = setTimeout( () => {
+        console.log('TIMER EFFECT: RENEW ACCESS TOKEN PLACEHOLDER, resetting authObj.. ')
+        connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, setUsername:null, auth, forceUpdate:false, log:'called by TIMER EFFECT' })
+      }, timerDuration );
+
+      // clean up timer on unmount of effect
+      return () => clearTimeout(timer);
+
+    }
+
+    //console.log('accessToken is 0, not setting TIMER EFFECT to renew session')
+
+  }, [auth])
+*/
+
+
+/* // THIS IS NOW DONE WITHIN connectedHelpers/connRenewSession.js
+   //
+
+  // check access token / id token expiration time any time the access token (and its related accessTokenExp) gets updated
+  // e.g. after session re-newal before token expires..
+  // sign the user out, once the session is expired
+
+  useEffect( ()=> {
+
+    const timeUntilAccessTokenExpiration = msUntilCognitoTS({ cognitoTS: auth.accessTokenExp, margin: 0 })
+    const timeUntilIdTokenExpiration = msUntilCognitoTS({ cognitoTS: auth.idTokenExp, margin: 0 })
+
+    // session expired
+    if (timeUntilAccessTokenExpiration <= 0 || timeUntilIdTokenExpiration <= 0) {
+
+      console.log('session expiration time check, session expired, trying to connRenewSession..')
+      connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, auth, log:'connRenew detected access/id token expired' })
+
+    } else {
+      console.log('session not expired yet..')
+    }
+
+  }, [auth])
+
+
+///////////////////////////////////////////////// END OF SESSION-RENEW FUNCTIONALITY // 
+
+
+
+
+
+
 
 // A special wrapper for <Route> that knows how to
 // handle "sub"-routes by passing them in a `routes`

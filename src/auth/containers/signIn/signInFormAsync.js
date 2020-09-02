@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 
 //import { Button, Form, FormGroup, Label, Input } from "reactstrap";
@@ -6,7 +6,7 @@ import React, { useState, useEffect } from "react";
 
 /** Presentation/UI */
 //import { SignUpContainer } from "../../../AppStyles.styles.tw";
-import ErrorMessage from "../../errorMessage";
+import ErrorMessage from "../../custom-hooks/errorMessage";
 
 /** Custom Hooks */
 import useErrorHandler from "../../custom-hooks/ErrorHandler";
@@ -24,7 +24,7 @@ import { R } from '../../routeNames'
 
 
 import { getValuesFromSession } from '../../cognito/config'
-import { resetStoredUserAuth } from '../../cognito/localStorage'
+import { resetStoredUserAuth } from '../../connectedHelpers/localStorage'
 
 
 import { setAuthStatus, setUnauthStatus } from '../../connectedHelpers/authHelper'
