@@ -11,13 +11,6 @@ import ErrorMessage from "../../errorMessage";
 /** Custom Hooks */
 import useErrorHandler from "../../custom-hooks/ErrorHandler";
 
-/** Utils */
-//import * as auth from "../../helpers/auth";
-//import { validateForm } from "./helpers";
-
-
-//import { authContext } from "../../contexts/AuthContext";
-//import { getValuesFromSession } from '../../cognito/config'
 
 import { useHistory, useLocation } from 'react-router-dom';  // added by chris, probably not the best place to put this..
 import { Redirect } from "react-router";
@@ -33,8 +26,6 @@ import { R } from '../../routeNames'
 import { getValuesFromSession } from '../../cognito/config'
 import { resetStoredUserAuth } from '../../cognito/localStorage'
 
-import { confirmCognitoUserAsync } from '../../cognito/confirmation'
-import resendConfirmation from '../../cognito/resendConfirmation'
 
 import { setAuthStatus, setUnauthStatus } from '../../connectedHelpers/authHelper'
 import { AuthStore } from "../../psStore/AuthStore";
@@ -89,7 +80,6 @@ const SignInForm = function() {
 
   // SIGN-IN LOGIC
   async function doSignIn({ username='', password='' }) {
-
 
 
     // triggers all pullstate related functions on successful login or login flow action (e.g. password reset, confirmation code entered, mfa ..)
@@ -322,13 +312,6 @@ const SignInForm = function() {
           //const auth = await doSignIn({ username:formUsername, password })
           doSignIn({ username:formUsername, password })
 
-          //console.log('after connSignInAsync, auth.authenticated, auth.username:', auth.authenticated, auth.username)
-          // need to wait for context state to be set by connSignInAsync.. will not show right away in the next few lines..!!
-
-          //const res = await connSignInAsync({ username:formUsername, password, setAuthStatus, setUnauthStatus, setUsername, setUserId })
-          //if (res === null) return
-          //console.log('onSubmit res:', res)
-
       }}
       >
 
@@ -383,6 +366,8 @@ const SignInForm = function() {
 };
 
 export default SignInForm;
+
+
 
 /*
 
