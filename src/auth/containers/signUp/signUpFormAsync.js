@@ -143,7 +143,6 @@ const SignUpForm = function() {
       console.log(log)
 
       const newAuthObj = { ...getValuesFromSession(sess), username:formUsername, authenticated:true }  // just checks correctness and extracts values from session variable
-
       setAuthStatus(newAuthObj) // this also stores to localStorage
 
       // could also set s.authenticated = true
@@ -327,14 +326,17 @@ const SignUpForm = function() {
                   if (JSON.stringify(e) !== '{}') {
                     await psDialogAsync({ 
                         component: SimpleDialog, 
-                        title:"New Error", 
+                        title:"SignUp Error", 
                         text: JSON.stringify(e), 
                         submitLabel:"Ok", 
                         rejectVal:"", 
                         alwaysResolve: true 
                     })              
-                    return doFailure("New Error:", JSON.stringify(e) )  
+                    return doFailure("SignUp Error:", JSON.stringify(e) )  
                   }
+
+                  // trying to fix a {} error that keeps showing up..
+                  return null
                   //return doFailure( JSON.stringify(e) )  
         }       
         

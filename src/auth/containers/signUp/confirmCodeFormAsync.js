@@ -88,6 +88,7 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
                 alwaysResolve: true 
             })  
             doFailure("Confirmation code not entered" )
+            return null
         }
         
 
@@ -180,6 +181,7 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
                                 alwaysResolve: true 
                             })                           
                             doFailure("New confirmation was sent" )
+                            break
 
                         }
                         catch (reqErr) {
@@ -192,7 +194,8 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
                                 rejectVal:"", 
                                 alwaysResolve: true 
                             })                         
-                            doFailure("Error requesting new confirmation code:", JSON.stringify(reqErr) )
+                            doFailure("Error requesting new confirmation code: "+ JSON.stringify(reqErr) )
+                            break
                         }
                     } 
 
@@ -212,18 +215,18 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
                     if (JSON.stringify(e) !== '{}') {
                         await psDialogAsync({ 
                             component: SimpleDialog, 
-                            title:"New Error", 
+                            title:"Code Form Error", 
                             text: JSON.stringify(e), 
                             submitLabel:"Ok", 
                             rejectVal:"", 
                             alwaysResolve: true 
                         })              
-                        doFailure("New Error:", JSON.stringify(e) )   
+                        doFailure("Code Form Error: "+JSON.stringify(e) )   
                     }
 
-                    resolve(true)
+                    // i m getting a {} error even after successful registration... trying to fix that with this hack
+                    resolve(false)
 
-                    //return doFailure( JSON.stringify(e) )
     
             }
         }
