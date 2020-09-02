@@ -1,14 +1,14 @@
-//import * as React from "react";
 
-/** Custom types */
-//import { UserAuth } from "../../custom-types";
-
-/** Utils */
 import { storeUserAuth, resetStoredUserAuth } from "../cognito/localStorage";
 
-//import { USER_AUTH_KEY } from "../local-storage";
 import { EMPTY_USER_AUTH } from "../cognito/config";
 import { AuthStore } from "../psStore/AuthStore";
+
+
+//
+// sets and unset the pullstate auth store
+//
+
 
 export const setAuthStatus = (userAuth) => {
 

@@ -6,17 +6,7 @@ import * as React from "react";
 import { AuthStore } from "../../psStore/AuthStore";
 import { setUnauthStatus } from "../../connectedHelpers/authHelper"
 
-/** router **/
 
-
-
-
-
-/** Utils */
-//import * as auth from "../../helpers/auth";
-//import { validateForm } from "./helpers";
-
-/** router **/
 import { useHistory } from 'react-router-dom';  // added by chris, probably not the best place to put this..
 
 //import signOutAsync from '../../cognito/signOut'
