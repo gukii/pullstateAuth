@@ -14,8 +14,8 @@ import SignUpForm from "./signUpFormAsync";
 /** Presentation/UI */
 //import { AuthPageWrapper, SignUpWrapper } from "../../../AppStyles.styles.tw";
 
-import GlobalModalContainer from "../../modal.js.old";
-import ConfirmationCodeForm from "./confirmationCodeForm.js.old";
+//import GlobalModalContainer from "../../modal.js.old";
+//import ConfirmationCodeForm from "./confirmationCodeForm.js.old";
 
 import { R } from '../../routeNames'
 

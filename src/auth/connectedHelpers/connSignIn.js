@@ -1,5 +1,5 @@
 //import React, { useState, useEffect } from "react";
-
+/*
 import authenticateAsync from '../cognito/authenticate'
 import { getValuesFromSession } from '../cognito/config'
 import { resetStoredUserAuth } from '../cognito/localStorage'
@@ -43,26 +43,7 @@ export async function connSignInAsync({ username='', password='', setAuthStatus,
     console.log('connSignInAsync err:', e)
     alert(!!e.message && !!e.code ? `${e.message} (${e.code})` : JSON.stringify(e))
 
-/*  CURRENTLY HANDLED WITHIN COGNITO/AUTHENTICATE.JS - with prompt...
 
-    if (e.code) {
-
-      switch(e.code) {
-        'sendMFACodeException':
-
-        'UserNotConfirmedException'
-
-        'PasswordResetRequiredException': {
-            // sendMFACode(confirmationCode, callback, mfaType, clientMetadata) {
-             const confirmationCode = prompt("Please enter confirmation code:","");
-             e.cognitoUser.sendMFACode(confirmationCode, callback, mfaType, clientMetadata) {
-            //cognitoUser.sendMFACode(mfaCode, this)
-        }
-        default:
-      }
-
-    }
-*/
 
 
     setUnauthStatus({ log:"connSignInAsync error"})
@@ -77,3 +58,5 @@ export async function connSignInAsync({ username='', password='', setAuthStatus,
     console.log('connSignInAsync finally..')
   }
 }
+
+*/

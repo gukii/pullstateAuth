@@ -1,4 +1,4 @@
-
+/*
 import { cognitoResendConfirmation } from '../cognito/resendConfirmation'
 
 import { setUnauthStatus } from './authHelper'
@@ -25,3 +25,4 @@ export const resendConfirmation = async function() {
         return null
     }
 }
+*/
