@@ -284,14 +284,17 @@ const SignInForm = function() {
                 if (JSON.stringify(e) !== '{}') {
                     await psDialogAsync({ 
                         component: SimpleDialog, 
-                        title:"New Error", 
+                        title:"SignIn Error", 
                         text: JSON.stringify(e), 
                         submitLabel:"Ok", 
                         rejectVal:"", 
                         alwaysResolve: true 
                     })              
-                    return doFailure("New Error:", JSON.stringify(e) )   
+                    return doFailure("SignIn Error:", JSON.stringify(e) )   
                 }
+
+                // trying to fix an error returning {} even after successful conirmation code verification..
+                return null
                 //return doFailure( JSON.stringify(e) )            
       }
     }
