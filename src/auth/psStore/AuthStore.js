@@ -1,6 +1,6 @@
 import { Store } from "pullstate";
 import { TRIGGER_TOKEN_RENEW_SECS_BEFORE_EXPIRATION, EMPTY_USER_AUTH } from "../cognito/config";
-import { getStoredUsername, getStoredUserAuth } from '../connectedHelpers/localStorage'
+import { getStoredUserAuth } from '../connectedHelpers/localStorage'
 
 import { showExpirationTime } from '../cognito/showExpirationTime'
 import { connRenewSessionAsync } from '../connectedHelpers/connRenewSession'
@@ -10,18 +10,8 @@ import { setAuthStatus, setUnauthStatus } from '../connectedHelpers/authHelper'
 
 export const AuthStore = new Store({
 
-    //isAuthenticated: false,
-
-    //username: null, // (is inside auth, username inside auth gets initialized with username from localstorage
-    //userId: null,
-
     auth: getStoredUserAuth({ log:"pullstate store init", emptyObj:EMPTY_USER_AUTH }),  // currently mostly dealing with this one, as refactoring from context to pullstate
 
-    //userAccountVerified: false,
-    //attributeVerified: false,
-    //mfaVerified: false,    
-
-  
 })
 
 
@@ -39,7 +29,7 @@ unsubscribeFromAuthStore = AuthStore.subscribe(
     s => s.auth,
     auth => {
 
-
+        // got username from localStorage (during store initialization), trying to auto-login 
         if (!auth.authenticated && !!auth.username && auth.username.length > 0) {
             console.log('got username, but not authenticated. trying to renew session..', auth)
             connRenewSessionAsync({ setUnauthStatus, setAuthStatus, username:auth.username, setUsername:null, auth, forceUpdate:false, log:'called by ROUTER' })
@@ -47,6 +37,8 @@ unsubscribeFromAuthStore = AuthStore.subscribe(
         }
 
 
+
+        // auto-renew session by before auth token expires (for server sent events and APIs having a valid tokens)
         if (auth !== null && auth.username !== null) {
 
             if (!auth.authenticated) return
