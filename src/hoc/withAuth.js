@@ -17,25 +17,6 @@ import SignOut from '../auth/containers/signOut'
 
 
 
-/*
-import { AuthStore } from "../auth/psStore/AuthStore";
-
-
-console.log('withAuth outside..')
-
-// reacts to changes of auth.. 
-function authReactor() {
-
-  const unsubscribeReaction = AuthStore.createReaction(s => s.auth, (auth, draft) => {
-    console.log('authStore reaction called..')
-  })
-
-}
-authReactor()
-
-*/
-
-
 
 const withAuth = Component => props => {
 
@@ -83,6 +64,25 @@ export default withAuth
 
 
 
+
+
+/*
+import { AuthStore } from "../auth/psStore/AuthStore";
+
+
+console.log('withAuth outside..')
+
+// reacts to changes of auth.. 
+function authReactor() {
+
+  const unsubscribeReaction = AuthStore.createReaction(s => s.auth, (auth, draft) => {
+    console.log('authStore reaction called..')
+  })
+
+}
+authReactor()
+
+*/
 
 
 

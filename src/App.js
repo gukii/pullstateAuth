@@ -10,11 +10,14 @@ import RouterComponent from './auth/router'
 // for showing dialogs and prompts
 import { PsRenderDialog } from './auth/containers/modalPortal/modalPortal'
 
+import { StoreTest } from './StoreTest'
 
 function App() {
   return (
 
     <div className="App">
+
+          <StoreTest />
 
           <PsRenderDialog />
 
