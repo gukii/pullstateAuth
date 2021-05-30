@@ -7,7 +7,7 @@ import RouterComponent from './auth/router'
 
 //import CodeSplitRouterTest from './components/codeSplitRouterTest'
 
-// for showing dialogs and prompts
+// render function for Modal. for showing dialogs and prompts, this is necessary for all variations of dialogs within modalPortal
 import { PsRenderDialog } from './auth/containers/modalPortal/modalPortal'
 
 import { StoreTest } from './StoreTest'
@@ -28,4 +28,3 @@ function App() {
 }
 
 export default App;
-

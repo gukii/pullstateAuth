@@ -1,22 +1,21 @@
 import * as React from "react";
 
+// stores and showes an error message for a given amount of time
+// returns an error and showError Fn as hook results
 
-//
-// returns:
-//
-// error:
-// showError: (a function)
-
-const useErrorHandler = (initialState=null) => {
+const useErrorHandler = (initialState=null, timeoutDuration=4000) => {
     const [error, setError] = React.useState(initialState);
 
 
     const showError = (errorMessage=null) => {
+      let timeoutHandler
+
+      clearTimeout(timeoutHandler)
       setError(errorMessage);
 
-      window.setTimeout(() => {
+      timeoutHandler = window.setTimeout(() => {
         setError(null);
-      }, 3000);
+      }, timeoutDuration);
     };
 
     return { error, showError };

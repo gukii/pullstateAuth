@@ -7,7 +7,7 @@ import { confirmCognitoUserAsync } from '../../cognito/confirmation'
 import { connNewCognitoUser } from '../../connectedHelpers/connCognitoUser'
 
 
-import { ConfirmationCodeDialog, PsRenderDialog, psDialogAsync, InputFunction, SimplePrompt, SimpleDialog } from '../modalPortal/modalPortal'
+import { ConfirmationCodeDialog, PsRenderDialog, psDialogAsync, psPromptAsync, InputFunction, SimplePrompt, SimpleDialog } from '../modalPortal/modalPortal'
 
 
 import { setUnauthStatus } from '../../connectedHelpers/authHelper'
@@ -28,7 +28,7 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
             showError(log)
             resetStoredUserAuth()
             resolve(null)
-        }    
+        }
 
         function doSuccess(log='') {
             console.log(log)
@@ -36,7 +36,7 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
             showError(log)
             //resetStoredUserAuth()
             resolve(true)
-        }  
+        }
 
 
         if (log.length > 0) console.log(`confirmSignUpAsync, log: ${log}`)
@@ -44,6 +44,8 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
 
         //const _cognitoUser = cognitoUser || await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
+        //
+        // maybe don t have to "await" here..
         const _cognitoUser = await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
 
         if (_cognitoUser === null) {
@@ -61,15 +63,15 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
 
         // needs to be in a try() catch(e)...
-        const confirmationCode = await psDialogAsync({ 
-            component: SimplePrompt, 
-            title:"Enter Confirmation Code", 
-            text:"Your account is not yet confirmed. \n\nWe have sent you a confirmation code via email / sms.", 
-            label:"Code: ", 
-            submitLabel:"Verify", 
-            cancelLabel:"Cancel", 
-            rejectVal:"", 
-            alwaysResolve: true 
+        const confirmationCode = await psDialogAsync({
+            component: SimplePrompt,
+            title:"Enter Confirmation Code",
+            text:"Your account is not yet confirmed. \n\nWe have sent you a confirmation code via email / sms.",
+            label:"Code: ",
+            submitLabel:"Verify",
+            cancelLabel:"Cancel",
+            rejectVal:"",
+            alwaysResolve: true
         })
 
 
@@ -79,18 +81,18 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
         if (confirmationCode === null || confirmationCode === undefined || confirmationCode.length === 0) {
             //alert("Confirmation code not entered")
-            await psDialogAsync({ 
-                component: SimpleDialog, 
-                title:"Confirmation Code not entered", 
-                text:"User sign in not possible. Try again next time.", 
-                submitLabel:"Ok", 
-                rejectVal:"", 
-                alwaysResolve: true 
-            })  
+            await psDialogAsync({
+                component: SimpleDialog,
+                title:"Confirmation Code not entered",
+                text:"User sign in not possible. Try again next time.",
+                submitLabel:"Ok",
+                rejectVal:"",
+                alwaysResolve: true
+            })
             doFailure("Confirmation code not entered" )
             return null
         }
-        
+
 
 
         try {
@@ -105,14 +107,14 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
             if (result === "SUCCESS") {
 
-                await psDialogAsync({ 
-                    component: SimpleDialog, 
-                    title:"SignUp Success", 
-                    text:"Your signup was successful and is confirmed.", 
-                    submitLabel:"Ok", 
-                    rejectVal:"", 
-                    alwaysResolve: true 
-                })  
+                await psPromptAsync({
+                    component: SimpleDialog,
+                    title:"SignUp Success",
+                    text:"Your signup was successful and is confirmed.",
+                    submitLabel:"Ok",
+                    rejectVal:"",
+                    alwaysResolve: true
+                })
 
 
                 // because userAccountVerified-useEffect above does not catch..
@@ -121,13 +123,13 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
 
             } else {
-                await psDialogAsync({ 
-                    component: SimpleDialog, 
-                    title:"There was a problem confirming the user", 
-                    submitLabel:"Ok", 
-                    rejectVal:"", 
-                    alwaysResolve: true 
-                })              
+                await psPromptAsync({
+                    component: SimpleDialog,
+                    title:"There was a problem confirming the user",
+                    submitLabel:"Ok",
+                    rejectVal:"",
+                    alwaysResolve: true
+                })
                 doFailure("There was a problem confirming the user" )
 
             }
@@ -141,28 +143,28 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
                 case 'CodeMismatchException':
 
-                    await psDialogAsync({ 
-                        component: SimpleDialog, 
-                        title:"Confirmation code was not correct.", 
-                        submitLabel:"Ok", 
-                        rejectVal:"", 
-                        alwaysResolve: true 
-                    })             
+                    await psPromptAsync({
+                        component: SimpleDialog,
+                        title:"Confirmation code was not correct.",
+                        submitLabel:"Ok",
+                        rejectVal:"",
+                        alwaysResolve: true
+                    })
                     doFailure("Confirmation code was not correct." )
                     break
-            
+
 
                 case 'ExpiredCodeException':
-            
-                    const res = await psDialogAsync({ 
-                        component: SimpleDialog, 
-                        title:"Confirmation Code Expired", 
-                        text:"Please request a new confirmation code.", 
-                        submitLabel:"Request new code", 
-                        cancelLabel:"Cancel", 
-                        rejectVal:"", 
-                        alwaysResolve: true 
-                    }) 
+
+                    const res = await psPromptAsync({
+                        component: SimpleDialog,
+                        title:"Confirmation Code Expired",
+                        text:"Please request a new confirmation code.",
+                        submitLabel:"Request new code",
+                        cancelLabel:"Cancel",
+                        rejectVal:"",
+                        alwaysResolve: true
+                    })
 
                     if (res === "submit") {
                         console.log('request new confirmation code here..')
@@ -172,65 +174,68 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
                             await resendConfirmation(_cognitoUser)
 
                             setLoading(false)
-                            await psDialogAsync({ 
-                                component: SimpleDialog, 
-                                title:"New confirmation was sent", 
+                            await psPromptAsync({
+                                component: SimpleDialog,
+                                title:"New confirmation was sent",
                                 text:"Check your email or sms in 2-3 minutes",
-                                submitLabel:"Ok", 
-                                rejectVal:"", 
-                                alwaysResolve: true 
-                            })                           
+                                submitLabel:"Ok",
+                                rejectVal:"",
+                                alwaysResolve: true
+                            })
                             doFailure("New confirmation was sent" )
                             break
 
                         }
                         catch (reqErr) {
                             setLoading(false)
-                            await psDialogAsync({ 
-                                component: SimpleDialog, 
-                                title:"Error requesting new confirmation code", 
-                                text: JSON.stringify(reqErr), 
-                                submitLabel:"Ok", 
-                                rejectVal:"", 
-                                alwaysResolve: true 
-                            })                         
+                            await psPromptAsync({
+                                component: SimpleDialog,
+                                title:"Error requesting new confirmation code",
+                                text: JSON.stringify(reqErr),
+                                submitLabel:"Ok",
+                                rejectVal:"",
+                                alwaysResolve: true
+                            })
                             doFailure("Error requesting new confirmation code: "+ JSON.stringify(reqErr) )
                             break
                         }
-                    } 
+                    }
 
-                    await psDialogAsync({ 
-                        component: SimpleDialog, 
-                        title:"Confirmation code expired", 
-                        text: "Request a new code", 
-                        submitLabel:"Ok", 
-                        rejectVal:"", 
-                        alwaysResolve: true 
-                    })                 
+                    await psPromptAsync({
+                        component: SimpleDialog,
+                        title:"Confirmation code expired",
+                        text: "Request a new code",
+                        submitLabel:"Ok",
+                        rejectVal:"",
+                        alwaysResolve: true
+                    })
                     doFailure("Confirmation code expired, request a new one." )
                     break
 
-                    
-                default: 
+
+                case 'CodeDeliveryFailureException':
+
+
+                default:
                     if (JSON.stringify(e) !== '{}') {
-                        await psDialogAsync({ 
-                            component: SimpleDialog, 
-                            title:"Code Form Error", 
-                            text: JSON.stringify(e), 
-                            submitLabel:"Ok", 
-                            rejectVal:"", 
-                            alwaysResolve: true 
-                        })              
-                        doFailure("Code Form Error: "+JSON.stringify(e) )   
+                        await psDialogAsync({
+                            component: SimpleDialog,
+                            title:"Code Form Error",
+                            text: JSON.stringify(e),
+                            submitLabel:"Ok",
+                            rejectVal:"",
+                            alwaysResolve: true
+                        })
+                        doFailure("Code Form Error: "+JSON.stringify(e) )
                     }
 
                     // i m getting a {} error even after successful registration... trying to fix that with this hack
                     resolve(false)
 
-    
+
             }
         }
-        
+
     })
 
 

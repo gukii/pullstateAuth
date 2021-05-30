@@ -13,7 +13,7 @@ import useErrorHandler from "../../custom-hooks/ErrorHandler";
 
 //import { getValuesFromSession } from '../../cognito/config'
 
-//import { useHistory, useLocation } from 'react-router-dom';  // added by chris, probably not the best place to put this..
+import { useHistory, useLocation } from 'react-router-dom';  // added by chris, probably not the best place to put this..
 //import { Redirect } from "react-router";
 //import { getRouteStateVar } from '../routeHelpers'
 //import { getValuesFromSession } from '../../cognito/config'
@@ -43,259 +43,43 @@ import { confirmSignUpAsync } from '../signUp/confirmCodeFormAsync'
 
 
 
-import { registerUserAsyncFn } from './logic' // validateForm moved from "logic.js" to this file..
-
-
-import SignOut from '../../containers/signOut'
-
-
+import { routeOnSuccess, registerUserAsyncFn } from './logic'
 
 
 //
 // signIn form that uses promisified cognito authenticate function
 //
-// confirmation code verification flow happens during sign-in flow, calling "confirmCodeFormAsync.js"
-//
 
-const SignUpForm = (props) => {
+const SignUpForm = function() {
 
-  const { history, location } = props
-  const [isMounted, setIsMounted] = useState(false)
-  // trying to fix memory leak complaint
-  useEffect( ()=> {
-    setIsMounted(true)
-    return () => setIsMounted(false)
-  }, [] )
 
-  const { authOk, username } = AuthStore.useState(s => ({
-    authOk:   s.auth.authenticated || false,
-    username: s.auth.username || null
-  }) )
+  //const auth = AuthStore.useState(s => s.auth)
 
-  const currentLocation = location.pathname
 
-  // the fields of "Name", "Value" are stated in AWS way for signupAttributes
-  // "nonAttribute" refers to fields that should not be part of signUpAttributes
-  // username and password are submitted outside signUpAttributes by the api call, hence they r also marked as nonAttributes
-  // "msg" are field specific error messages set during form validation
-  // "ok" is a flag that form validation ok = true
-  // initial values of msg/ok: msg:null, ok:true
-  //
-  // the hash id is just for internal use within the form and validate function, could be named anything as long as its consistent during usage
-  //
-  const inDataInitial = {
-    "username":       { Label:"Username",         Name:"username",            Value:"",   nonAttribute:true,    msg:null, ok:true },
-    "password":       { Label:"Password",         Name:"password",            Value:"",   nonAttribute:true,    msg:null, ok:true },
-    "passwordRetype": { Label:"Retype Password",  Name:"passwordRetype",      Value:"",   nonAttribute:true,    msg:null, ok:true },
+  const history = useHistory();    // added by chris
+  const location = useLocation()
 
-    // these are all AWS signupAttributes:
-    "name":           { Label:"Full Name",        Name:"name",                Value:"",   msg:null, ok:true },
-    "email":          { Label:"Email",            Name:"email",               Value:"",   msg:null, ok:true },
-    "phone_number":   { Label:"Phone",            Name:"phone_number",        Value:"",   msg:null, ok:true },
-    "displayName":    { Label:"DisplayName",      Name:"custom:displayname",  Value:"",   msg:null, ok:true },
-    "country":        { Label:"Country",          Name:"custom:country",      Value:"",   msg:null, ok:true },
-  }
-  const [inData, setInData] = useState( inDataInitial )
+  const [ name, setName ] = React.useState("");
+  const [ email, setEmail ] = React.useState("");
+  const [ phone, setPhone ] = React.useState("");
+  const [ displayname, setDisplayname ] = React.useState("");
 
+  const [ formUsername, setFormUsername ] = React.useState("");
+  //const [ birthdate, setBirthdate ] = React.useState("");
+
+
+  const [ country, setCountry ] = React.useState();
+
+  const [ password, setPassword ] = React.useState("");
+  const [ passwordRetype, setPasswordRetype ] = React.useState("");
 
   const [ loading, setLoading ] = useState(false);
   const { error, showError } = useErrorHandler(null);   // setError would raise an error: setError is not a function... so i m calling it 'showError' now
 
-
-
-  // sets the form state Value of one field, identified by its Name (e.g. "custom:country")
-  function setFieldData( key, newVal, msg=null, ok=null ) {
-    //const idx = inData.findIndex( (item) => item.Name === Name )
-    //const updated = { ...inData[key], Value: newVal }
-    //const newData = { ...inData, [key]: updated }
-    setInData( prevState => ({ ...prevState, [key]: { ...prevState[key],
-                                                      Value: newVal,
-                                                      ok: ok !== null ? ok : prevState[key].ok,
-                                                      msg: msg !== null ? msg : prevState[key].msg
-                                                    } }) )
-  }
-
-
-  // resets inData's ok and msg fields to initial values.
-  function resetFormMsgs() {
-
-    const newObj = Object.keys( inData ).reduce( function( obj, key ) {
-      obj[ key ] = { ...inData[ key ], ok: true, msg: null }
-      return obj
-    }, {} )
-
-    setInData( newObj )
-  }
-
-  // gets the form state Value of one field, identified by its Name (e.g. "custom:country")
-  function getField( key ) {
-    //return inData.filter( (item) => item.Name === Name )
-    return inData[ key ]
-  }
-
-
-  //export function validateForm({ email='', phone='', username, password, passwordRetype }, showError ) {
-  function validateForm( inData, showError ) {
-
-      resetFormMsgs()
-
-      const signUpAttributes = Object.values(inData).filter( item => !!!item.nonAttribute )
-  /*  // email is now optional
-      // Check for invalid email
-      if (!validator.isEmail(email)) {
-        showError("Please enter a valid email address.");
-        return false;
-      }
-  */
-      const username = inData["username"].Value
-      const password = inData["password"].Value
-      const passwordRetype = inData["passwordRetype"].Value
-      const phone = inData["phone_number"].Value
-      const email = inData["email"].Value
-
-
-
-
-      console.log('validating inData:', inData)
-
-      let errorFlag = true
-
-      if (username === '') {
-      //alert('Enter a username and password!')
-
-        // shows a red error message below the login button
-        setFieldData( 'username', inData['username'].Value, "Please enter a username.", false )
-        //showError("Please enter a username")
-
-        //showError("Please enter a username and password")
-        errorFlag = false
-      }
-
-      if (password === '') {
-        setFieldData( 'password', inData['password'].Value, "Please enter a password.", false )
-        //showError("Please enter a password")
-        errorFlag = false
-
-      }
-
-      if (passwordRetype === '') {
-        setFieldData( 'passwordRetype', inData['passwordRetype'].Value, "Please repeat the password.", false )
-        //showError("Please repeat the password")
-        errorFlag = false
-      }
-
-      // check if passwords match
-      if (password !== '' && passwordRetype !== '' && password !== passwordRetype) {
-        setFieldData( 'passwordRetype', inData['passwordRetype'].Value, "The passwords you entered don't match.", false )
-        //showError("The passwords you entered don't match.");
-        errorFlag = false
-      }
-
-
-      if (email === "") {
-        setFieldData( 'email', inData['email'].Value, "Please enter an email address.", false )
-
-        //showError("Please enter a mobile phone number, starting with + followed by country code, e.g. +88690221222");
-        errorFlag = false
-      }
-
-      if (!validator.isEmail(email) ) {
-        setFieldData( 'email', inData['email'].Value, "Please enter a valid email address.", false )
-
-        //showError("Please enter a valid mobile phone number, e.g. +88690221222");
-        errorFlag = false
-      }
-
-
-
-      if (phone === "") {
-        setFieldData( 'phone_number', inData['phone_number'].Value, "Please enter phone number (e.g. +88690221222).", false )
-
-        //showError("Please enter a mobile phone number, starting with + followed by country code, e.g. +88690221222");
-        errorFlag = false
-      }
-
-      if (phone !== "" && phone[0] !== "+" && phone[0] !== "0" && phone[0] !== "(") {
-        setFieldData( 'phone_number', inData['phone_number'].Value, <span>Please enter a phone number in this format: <span style={{ fontWeight: "bold"}}>+886</span>90221222</span>, false )
-
-        //showError("Please enter a mobile phone number, starting with + followed by country code, e.g. +88690221222");
-        errorFlag = false
-        return errorFlag
-      }
-
-      //if (!validator.isMobilePhone(phone, 'any', regex)) {
-      if (!validator.isMobilePhone(phone)) {
-        setFieldData( 'phone_number', inData['phone_number'].Value, "Please enter phone number (e.g. +88690221222).", false )
-
-        //showError("Please enter a valid mobile phone number, e.g. +88690221222");
-        errorFlag = false
-      }
-
-      return errorFlag;
-  }
-
-
-
   //const [firstRender, setFirstRender] = useState(false)
 
-
-        // as standard/custom attributes as specified in:
-        // https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
-  /*
-        const signupAttributes = [
-          { Name: 'email',          Value: email },
-          { Name: 'name',           Value: name },
-          //{ Name: 'username',       Value: formUsername },
-          { Name: 'nickname',       Value: formUsername },
-          //{ Name: 'birthdate',      Value: birthdate },
-          { Name: 'phone_number',   Value: phone },
-          { Name: 'custom:country', Value: country },
-          //{ Name: 'custom:line_id', Value: "some line id" },
-
-        ]
-  */
-
-  /*
-        const signupAttributes = [
-          //{ Name: 'email',          Value: email },
-          //{ Name: 'custom:email',          Value: email },
-
-          //{ Name: 'custom:displayname',           Value: displayname },
-          //{ Name: 'username',       Value: formUsername },
-          //{ Name: 'name',       Value: name },
-          //{ Name: 'birthdate',      Value: birthdate },
-          { Name: 'phone_number',   Value: phone },
-          //{ Name: 'custom:country', Value: country },
-          //{ Name: 'custom:line_id', Value: "some line id" },
-
-        ]
-  */
-
-/*
-  const signupAttributes = [
-    { Name: 'email',          Value: email },   // remove again
-    //{ Name: 'custom:email',          Value: email },
-
-    //{ Name: 'custom:displayname',           Value: displayname },
-    //{ Name: 'username',       Value: formUsername },
-    { Name: 'name',       Value: name },        // remove again
-    //{ Name: 'birthdate',      Value: birthdate },
-//        { Name: 'phone_number',   Value: phone }, // reinstate again
-    //{ Name: 'custom:country', Value: country },
-    //{ Name: 'custom:line_id', Value: "some line id" },
-  ]
-  */
-
   // heavy lifting is done with this hook:
-  const [ started, finished, result] = registerUserAsyncFn.useWatch({
-
-      //username: formUsername,     // commenting these out is probably not the correct way.. but might work.
-      //password,
-      //signupAttributes,
-
-      setLoading,
-      history,
-      showError });
+  const [ started, finished, result] = registerUserAsyncFn.useWatch({ username: formUsername, password, signupAttributes, setLoading, history, showError });
 
 
 
@@ -304,7 +88,7 @@ const SignUpForm = (props) => {
       const getIpData = async function() {
         //const res = await ipLookUp()
         //setCountry(res.country)
-        setFieldData('country', 'Taiwan' )
+        setCountry('Taiwan')
       }()
 
   }, [])
@@ -316,7 +100,7 @@ const SignUpForm = (props) => {
 
         if (!finished) {
           setLoading(true)
-          console.log('beckon !finished, trying to register ' + getField("username") )
+          console.log('beckon !finished, trying to register ' + formUsername)
 
         } else {
 
@@ -349,69 +133,252 @@ const SignUpForm = (props) => {
 */
 
 
+  function validateForm({ email='', phone='', password, passwordRetype }, showError ) {
 
-  // these parameters r wrong..
-  async function doSignUp( inData ) {
+/*  // email is now optional
+    // Check for invalid email
+    if (!validator.isEmail(email)) {
+      showError("Please enter a valid email address.");
+      return false;
+    }
+*/
+    // check if passwords match
+    if (password !== passwordRetype) {
+      showError("The passwords you entered don't match.");
+      return false;
+    }
 
-    console.log('doSignUp called with inData:', inData)
 
-    // triggers all pullstate related functions on successful registration or register-related action (e.g. username not available, no password, ... mfa ..)
+    if (phone[0] !== "+" || phone[0] === "0" || phone[0] === "(") {
+      showError("Please enter a mobile phone number, starting with + followed by country code, e.g. +88690221222");
+      return false
+    }
+
+    //if (!validator.isMobilePhone(phone, 'any', regex)) {
+    if (!validator.isMobilePhone(phone)) {
+      showError("Please enter a valid mobile phone number, e.g. +88690221222");
+      return false;
+    }
+
+    return true;
+  }
+
+
+  async function doSignUp({ email, name, formUsername, phone, country, password, passwordRetype} ) {
+
+
+    // triggers all pullstate related functions on successful login or login flow action (e.g. password reset, confirmation code entered, mfa ..)
     // sess = cognitoUser obj returned by cognito sign-in api call
 
-      const username = getField("username").Value
-      const password = getField("password").Value
+/*
 
-      // exclude the entries marked ".nonAttribute"
-      const signupAttributes = Object.values(inData).filter( item => !!!item.nonAttribute ).map( i => { return { Name:i.Name, Value:i.Value } } )
+    function doSuccess(sess, log='') {
+      console.log(log)
+
+      const newAuthObj = { ...getValuesFromSession(sess), username:formUsername, authenticated:true }  // just checks correctness and extracts values from session variable
+      setAuthStatus(newAuthObj) // this also stores to localStorage
+
+      // could also set s.authenticated = true
+      //AuthStore.update([ s => s.username = formUsername, s => s.userId = sess.idToken.payload.sub ])
+
+      console.log('setUserId:', sess.idToken.payload.sub)
+      return newAuthObj
+    }
 
 
 
-      console.log('doSignUp called with username/password/signupAttributes:', username, password, signupAttributes)
+    // triggers all pullstate related functions on failure
+    function doFailure(log='') {
+      console.log(log)
+      setUnauthStatus({ log:"signUpFormAsync error. "+log })
+      showError(log)
+      resetStoredUserAuth()
+      return null
+    }
+*/
 
-      if (!validateForm( inData, showError )) {
+      // as standard/custom attributes as specified in:
+      // https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html
+/*
+      const signupAttributes = [
+        { Name: 'email',          Value: email },
+        { Name: 'name',           Value: name },
+        //{ Name: 'username',       Value: formUsername },
+        { Name: 'nickname',       Value: formUsername },
+        //{ Name: 'birthdate',      Value: birthdate },
+        { Name: 'phone_number',   Value: phone },
+        { Name: 'custom:country', Value: country },
+        //{ Name: 'custom:line_id', Value: "some line id" },
+
+      ]
+*/
+
+/*
+      const signupAttributes = [
+        //{ Name: 'email',          Value: email },
+        //{ Name: 'custom:email',          Value: email },
+
+        //{ Name: 'custom:displayname',           Value: displayname },
+        //{ Name: 'username',       Value: formUsername },
+        //{ Name: 'name',       Value: name },
+        //{ Name: 'birthdate',      Value: birthdate },
+        { Name: 'phone_number',   Value: phone },
+        //{ Name: 'custom:country', Value: country },
+        //{ Name: 'custom:line_id', Value: "some line id" },
+
+      ]
+*/
+      const signupAttributes = [
+        { Name: 'email',          Value: email },   // remove again
+        //{ Name: 'custom:email',          Value: email },
+
+        //{ Name: 'custom:displayname',           Value: displayname },
+        //{ Name: 'username',       Value: formUsername },
+        { Name: 'name',       Value: name },        // remove again
+        //{ Name: 'birthdate',      Value: birthdate },
+//        { Name: 'phone_number',   Value: phone }, // reinstate again
+        //{ Name: 'custom:country', Value: country },
+        //{ Name: 'custom:line_id', Value: "some line id" },
+
+      ]
+
+
+      console.log('doSignUp called with username/password/signupAttributes:', formUsername, password, signupAttributes)
+
+      if (!validateForm({ email, phone, password, passwordRetype }, showError )) {
         console.log('error validating form:', error)
         return
       }
 
-      // for testing..
-      return
+      try {
 
-      //window.alert('dodoSignIn called..'+ formUsername + ' ' + password)
-      const result = await registerUserAsyncFn.run( {
-          username,
-          password,
-          signupAttributes,
+        setLoading(true)
+        //         const result = await registerAsync({ loginId:formUsername, password, signupAttributes })
+        // const result = await registerAsync({ username:formUsername, password, signupAttributes })
 
-          setLoading,
-          history,
-          showError });
-      // from the docs: const result = await authUserAsyncFn.run({ tag }, options);
+        // calls cognito/register.js
+        const result = await registerAsync({ username:formUsername, password, signupAttributes })
+        setLoading(false)
 
-      if (result.error) {
-        console.log('!! registerUserAsyncFn.run edge case or error:', result.error)
-        //showError('Edge case Auth or error..')  // error should also be shown within registerUserAsyncFn..
+
+        console.log('doSignUp, sucessful sign up:', result)
+
+        // EMAIL sent to "s***@m***.com"
+        await psDialogAsync({
+          component: SimpleDialog,
+          title:"Confirmation code sent",
+          text: `${result.codeDeliveryDetails.DeliveryMedium} sent to ${result.codeDeliveryDetails.Destination}`,
+          submitLabel:"Ok",
+          rejectVal:"",
+          alwaysResolve: true
+        })
+
+
+        // signup call successful, but user not yet confirmed !!!
+        // also no user-session at this point
+        if (result && result.user) {
+
+            console.log('doSignUp registerAsync result.user:', result.user)
+
+            // need this username to create a cognitoUser from (userPool + username)
+            // could also write this into auth.username
+            //setUsername(result.user.username);  // this sets username of context, not of localStorage!! need to bring these two together..
+            const resUsername = result.user.username
+            const resUserId = result.userSub
+
+            // resets auth object and inject username + userId into new auth object, writes this object into localStorage
+            //setUnauthStatus({ props: {username: resUsername, userId: resUserId}, log:"signUp Ok before confirmCode" })
+            setUnauthStatus({ props: {username: resUsername}, log:"signUp Ok before confirmCode" })
+
+            console.log('doSignUp setUserId:', resUserId)
+            //setUserId(result.userSub);
+            //setTimestamp(+stringUserTimestamp);
+
+
+            // could use this cognitoUser right here..
+            // const cognitoUser = result.user;
+          	// console.log('user name is ' + cognitoUser.getUsername());
+            // e.g. to confirm userAttributes
+
+            // if cognito is setup to demand verification of email or phone number:
+            const confirmed = await confirmSignUpAsync({ cognitoUser: result, username: resUsername, setLoading: setLoading, showError: showError })
+            console.log('confirmed:', confirmed)
+
+            if (confirmed) {
+              history.push(R.SIGNIN_ROUTE)
+              return true
+            }
+            return null
+            //doSuccess()
+
+
+        }
+
+
+
       }
+      catch(e) {
+        console.log('doSignUp err:', e)
 
-      if (!result.payload) {
-        console.log('!! registerUserAsyncFn.run didnt return a payload, returning early..', result)
-        return
+        setLoading(false)
+
+        switch (e.code) {
+
+          case 'InvalidParameterException': //(e.g. password left blank)
+                  await psDialogAsync({
+                    component: SimpleDialog,
+                    title:"Fields not filled out correctly",
+                    //text:"User sign in not possible. Try again next time.",
+                    submitLabel:"Ok",
+                    rejectVal:"",
+                    alwaysResolve: true
+                  })
+                  return doFailure("Fields not filled out correctly" )
+
+          case 'TooManyRequestsException':
+                  await psDialogAsync({
+                    component: SimpleDialog,
+                    title:"Too many requests",
+                    text:"You have tried too often. If you keep trying, you will get blocked. Try again in a few hours.",
+                    submitLabel:"Ok",
+                    rejectVal:"",
+                    alwaysResolve: true
+                  })
+                  return doFailure("Too many requests." )
+
+          case 'UsernameExistsException':
+                  await psDialogAsync({
+                    component: SimpleDialog,
+                    title:"Username already exists",
+                    text:"Choose a different username",
+                    submitLabel:"Ok",
+                    rejectVal:"",
+                    alwaysResolve: true
+                  })
+                  return doFailure("Username already exists." )
+
+          default:
+                  if (JSON.stringify(e) !== '{}') {
+                    await psDialogAsync({
+                        component: SimpleDialog,
+                        title:"SignUp Error",
+                        text: JSON.stringify(e),
+                        submitLabel:"Ok",
+                        rejectVal:"",
+                        alwaysResolve: true
+                    })
+                    return doFailure("SignUp Error:", JSON.stringify(e) )
+                  }
+
+                  // trying to fix a {} error that keeps showing up..
+                  return null
+                  //return doFailure( JSON.stringify(e) )
+        }
+
       }
-
-      // user gets routed to signIn page on success by registerUserAsyncFn
-
-  }
-
-
-  if (!isMounted) return null
-
-
-  if (authOk) return <><p>Please sign out first.</p><SignOut pushTo={R.SIGNUP_ROUTE} /></>
-            //? [ authOk, <SignOut />, username ]
-            //: [ authOk, <Redirect to={{ pathname: R.SIGNIN_ROUTE, state:{ from:currentLocation } }} />, username ]
-
-  function renderErrorMsg(id) {
-    //return !!!getField(id).ok && !!getField(id).msg && <ErrorMessage errorMessage={ getField(id).msg } />
-    return !!!getField(id).ok && !!getField(id).msg && <div style={{ color:"red", marginBottom:"0.4em" }}>{ getField(id).msg }</div>
+      finally {
+        console.log('doSignUp finally..')
+      }
 
   }
 
@@ -425,14 +392,14 @@ const SignUpForm = (props) => {
         className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
         onSubmit={ (e) => {
           e.preventDefault()
-          doSignUp( inData )
+          doSignUp({ email, name, formUsername, phone, country, password, passwordRetype })
 
           // override input to save time, for testing:
 
 /*
           doSignUp({  email:"gukii@yahoo.com",
                       name: "gukii man",
-                      username: "gukii2",
+                      formUsername: "gukii2",
                       phone:"+886952190728",
                       country: "tw",
                       password: "password",
@@ -446,136 +413,114 @@ const SignUpForm = (props) => {
 
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="formUsername">
-                { getField("username").Label }:&nbsp;
+                Username
             </label>
             <input
-              style={{ backgroundColor: !!!getField('username').ok ? "yellow" : "white" }}
               type="text"
               name="formUsername"
-              value={ getField("username").Value }
+              value={formUsername}
               id="formUsername"
               placeholder=""
-              onChange={e => setFieldData( "username", e.target.value ) }
+              onChange={e => setFormUsername(e.target.value)}
             />
         </div>
-        { renderErrorMsg('username') }
 
 
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="displayname">
-                { getField("displayName").Label }:&nbsp;
+                DisplayName
             </label>
             <input
-              style={{ backgroundColor: !!!getField('displayName').ok ? "yellow" : "white" }}
               type="text"
               name="displayname"
-              value={ getField("displayName").Value }
+              value={displayname}
               id="displayname"
               placeholder=""
-              onChange={e => setFieldData( "displayName", e.target.value ) }
+              onChange={e => setDisplayname(e.target.value)}
             />
         </div>
-        { renderErrorMsg('displayName') }
-
 
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="name">
-                { getField("name").Label }:&nbsp;
+                Full Name
             </label>
             <input
-              style={{ backgroundColor: !!!getField('name').ok ? "yellow" : "white" }}
               type="text"
               name="name"
-              value={ getField("name").Value }
+              value={name}
               id="name"
               placeholder=""
-              onChange={e => setFieldData( "name", e.target.value ) }
+              onChange={e => setName(e.target.value)}
             />
         </div>
-        { renderErrorMsg('name') }
-
 
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="email">
-                { getField("email").Label }:&nbsp;
+                Email
             </label>
             <input
-              style={{ backgroundColor: !!!getField('email').ok ? "yellow" : "white" }}
               type="email"
               name="email"
-              value={ getField("email").Value }
+              value={email}
               id="email"
               placeholder=""
-              onChange={e => setFieldData( "email", e.target.value ) }
+              onChange={e => setEmail(e.target.value)}
             />
         </div>
-        { renderErrorMsg('email') }
-
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="phone">
-                { getField("phone_number").Label }:&nbsp;
+                Mobile Phone
             </label>
             <input
-              style={{ backgroundColor: !!!getField('phone_number').ok ? "yellow" : "white" }}
               type="tel"
               name="phone"
-              value={ getField("phone_number").Value }
+              value={phone}
               id="phone"
               placeholder="+88690221222"
-              onChange={e => setFieldData( "phone_number", e.target.value ) }
+              onChange={e => setPhone(e.target.value)}
             />
         </div>
-        { renderErrorMsg('phone_number') }
-
 
 
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="country">
-                { getField("country").Label }:&nbsp;
+                Country
             </label>
             <input
-              style={{ backgroundColor: !!!getField('country').ok ? "yellow" : "white" }}
               type="text"
               name="country"
-              value={ getField("country").Value }
+              value={country}
               id="country"
               placeholder=""
-              onChange={e => setFieldData( "country", e.target.value ) }
+              onChange={e => setCountry(e.target.value)}
             />
         </div>
-        { renderErrorMsg('country') }
 
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="password">
-                { getField("password").Label }:&nbsp;
+                Password
             </label>
             <input
-              style={{ backgroundColor: !!!getField('password').ok ? "yellow" : "white" }}
               type="password"
               name="password"
-              value={ getField("password").Value }
+              value={password}
               id="password"
-              onChange={e => setFieldData( "password", e.target.value ) }
+              onChange={e => setPassword(e.target.value)}
             />
         </div>
-        { renderErrorMsg('password') }
-
         <div className="fullFormDiv">
             <label className="fullFomLabel" htmlFor="passwordRetype">
-                { getField("passwordRetype").Label }:&nbsp;
+                Retype Password
             </label>
             <input
-              style={{ backgroundColor: !!!getField('passwordRetype').ok ? "yellow" : "white" }}
               type="password"
               name="passwordRetype"
-              value={ getField("passwordRetype").Value }
+              value={passwordRetype}
               id="passwordRetype"
               placeholder=""
-              onChange={e => setFieldData( "passwordRetype", e.target.value ) }
+              onChange={e => setPasswordRetype(e.target.value)}
             />
         </div>
-        { renderErrorMsg('passwordRetype') }
-
 
 
 
@@ -602,15 +547,7 @@ const SignUpForm = (props) => {
 export default SignUpForm;
 
 
-/*
-const { name } = e.target;
-this.setState(
-  prevState => ({
-    [name]: !prevState[name]
-  }),
-  () => console.log(`this.state`, this.state)
-);
-*/
+
 
 /*
         UserNotFoundException // try logging in with a user that does not exist
@@ -628,9 +565,7 @@ this.setState(
         UsernameExistsException // user already exists
 
 
-        'ExpiredCodeException':
 
-        'CodeMismatchException' // This exception is thrown if the provided code does not match what the server was expecting
 
 
 // as specified in:

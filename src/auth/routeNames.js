@@ -1,3 +1,6 @@
+// to ensure route name consistency. 
+// necessary are: SIGNIN_ROUTE, SIGNUP_ROUTE, SIGNOUT_ROUTE, PUBLIC_HOME_ROUTE, AUTH_ROUTE
+
 export const R = {
   SIGNIN_ROUTE: "/signin",
   SIGNUP_ROUTE: "/signup",
@@ -12,5 +15,5 @@ export const R = {
   PRIVATE_ITEM_CONFIRM_BID: "/private/item/confirm",
   PRIVATE_ITEM_BID: "/private/item/bid",
 
-  AUTH_ROUTE: "/private"  // the route where use is getting forwarded to after login
+  AUTH_ROUTE: "/private"  // the route where user is getting directed to after successful login (if he didn t come from a "withAuth" route)
 }

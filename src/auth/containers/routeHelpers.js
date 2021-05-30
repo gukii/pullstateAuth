@@ -21,7 +21,7 @@ export function pushWithProperOrigin({ history, location, pushTo, params={} }) {
 export function getRouteStateVar({ location, fieldName = 'from' }) {
 
   // location comes from useLocation hook
-  if (!!location.state && !!location.state[fieldName] && location.state[fieldName].length > 0) return location.state[fieldName]
+  if (!!location && !!location.state && !!location.state[fieldName] && location.state[fieldName].length > 0) return location.state[fieldName]
   return ''
 }
 

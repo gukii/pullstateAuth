@@ -13,32 +13,33 @@ export const StoreTest = () => {
     useEffect( ()=> {
 
         TestStore.update(s => {
-            s.objs['a1'] = { name:'Obj1' }            
+            s.objs['a1'] = { name:'Obj1' }
             s.objs['a2'] = { name:'Obj2' }
             s.objs['a5'] = { name:'Obj5' }
-        }) 
-        
+        })
+
         setIterator('a5')
 
-    }, [setIterator])
+    }, [] )  //     }, [setIterator])
+
 
 
     // works
-    useEffect(() => {
-      
+    useEffect( () => {
+
         const unsubscribeFromObj5 = TestStore.subscribe(
           s => s.objs['a5'],
           newObj => {
             console.log('newObj:', newObj)
           }
         );
-        
+
         return () => {
             unsubscribeFromObj5();
         };
-      }, []);
-    
-    
+      }, [] );
+
+
 
     const obj5 = TestStore.useState( s=>s.objs[iterator], iterator ) // works
     //const obj5 = TestStore.useState( s=>s.objs['a5'] ) // works
@@ -68,4 +69,3 @@ export const StoreTest = () => {
         </>
     )
 }
-

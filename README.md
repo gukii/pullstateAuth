@@ -1,9 +1,45 @@
 ## pullstateAuth
 
-testing cognito authentication with pullstate library in react..
-work in progress
+cognito authentication build with pullstate library in react.
+no UI libraries used.
+
+general functionaly is there, some corner cases might need testing.
 
 
+### features:
+- auto session renew
+- confirm signup with code / email
+- higher order component wrapper for auth-protected components (withAuth)
+- or hook-based auth for protected auth-protected components (useAuth)
+- pullstate (https://lostpebble.github.io/pullstate/) as centralized store
+- signup form validation of individual fields
+- signup form error messages for individual fields
+- promise-based cognito auth
+- promise & react-portal based dialog and prompt (psDialog / psPrompt)
+- supports nested routing
+
+
+### notes:
+
+cognito session gets auto-renewed before it exprires, settings in:
+/auth/cognito/config.js
+
+centralized auth/routeNames.js file to ensure route name consistency. 
+(necessary are: SIGNIN_ROUTE, SIGNUP_ROUTE, SIGNOUT_ROUTE, PUBLIC_HOME_ROUTE, AUTH_ROUTE)
+
+cognito username is also stored in localstorage, so that session can be re-initiated without login after user leaves web-page and returns.
+
+
+pullState stores:
+- AuthStore: result of cognito authenticate call
+- PortalStore: user dialog/prompt component to be rendered & props
+
+pullState is small, but uses immer (https://www.npmjs.com/package/immer) which is 844kb unpacked.
+
+libraries were installed with YARN.
+
+
+still lots of old garbage code left in comments..
 
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

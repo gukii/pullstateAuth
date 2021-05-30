@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '../App.css';
 
 import {
@@ -17,7 +17,6 @@ import withAuth from '../hoc/withAuth'
 import { NavLink } from 'react-router-dom'
 import { R } from '../auth/routeNames'
 
-import Sparkles from './sparkles'
 
 import { renewSession } from "../auth/connectedHelpers/renewSession"
 //import { AuthStore } from "../auth/psStore/AuthStore";
@@ -31,7 +30,7 @@ import { renewSession } from "../auth/connectedHelpers/renewSession"
 
 // CAN T ROUTE BACK TO PUBLIC_HOME, NOT SURE WHY... SEEMS A ROUTER ISSUE.
 // NON OF THE ROOT ROUTER ROUTES WORK IN THE SUB-ROUTER..
-// 
+//
 // THE URL CHANGES, BUT PUBLIC_HOME DOES NOT GET RENDERED, PRIVATE HOME DOES GET RENDERED INSTEAD
 
 
@@ -41,9 +40,20 @@ import { renewSession } from "../auth/connectedHelpers/renewSession"
 const PrivateHome = props => {
   let { path, url } = useRouteMatch();
 
+
+  const [isMounted, setIsMounted] = useState(false)
+  // trying to fix memory leak complaint
+  useEffect( ()=> {
+    setIsMounted(true)
+    return () => setIsMounted(false)
+  }, [] )
+  // if (!isMounted) return <div>withAuth is not mounted..</div>
+
+  if (!isMounted) return <div>withAuth is not mounted..</div>
+
   return (
     <div className="App">
-      <header className="App-header">      
+      <header className="App-header">
         <ul>
           <li>
             <Link to={R.PRIVATE_ITEM_LIST}>Private Item List</Link>
@@ -56,7 +66,7 @@ const PrivateHome = props => {
           </li>
           <li>
             <Link to={`/`}>Home</Link>
-          </li>        
+          </li>
         </ul>
 
         <NavLink
@@ -67,20 +77,22 @@ const PrivateHome = props => {
           }}
         >
           Item List
-        </NavLink>      
+        </NavLink>
 
         <Switch>
           <Route exact path={path}>
             <h3>Please select a topic.</h3>
           </Route>
+
           <Route path={`${path}/more`}>
             <MoreComponent />
           </Route>
+
         </Switch>
       </header>
     </div>
   );
-} 
+}
 
 //export default PrivateHome
 

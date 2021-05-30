@@ -16,7 +16,10 @@ import SignOut from '../auth/containers/signOut'
 import PublicHome from '../components/publicHome'
 import PrivateHome from '../components/privateHome'
 
+import PrivateItem from '../components/privateItem'
+
 import PrivateItemList from '../components/privateItemList'
+import PrivateItemListWithHook from '../components/privateItemListWithHook'
 
 
 //import { PrivateHomeNoAuth } from '../components/privateHome'
@@ -34,7 +37,7 @@ export default function RouterExample() {
 
   return (
     <Router>
-      <div>
+      <>
 
         <p>
           main menu (from router)
@@ -53,49 +56,39 @@ export default function RouterExample() {
 
         <Switch>
 
+          <Route exact path={R.PUBLIC_HOME_ROUTE} component={PublicHome} />
 
-          <Route exact path={R.PUBLIC_HOME_ROUTE} >
-            <PublicHome />
-          </Route>
+          <Route exact path={R.SIGNIN_ROUTE} component={SignIn} />
 
-          <Route exact path={R.SIGNIN_ROUTE}>
-            <SignIn />
-          </Route>
+          <Route exact path={R.SIGNOUT_ROUTE} component={SignOut} />
 
-          <Route exact path={R.SIGNOUT_ROUTE}>
-            <SignOut />
-          </Route>
+          <Route exact path={R.SIGNUP_ROUTE} component={SignUp} />
 
-          <Route exact path={R.SIGNUP_ROUTE}>
-            <SignUp />
-          </Route>
+          <Route exact path={R.PRIVATE_ITEM_LIST} component={PrivateItemListWithHook} />
 
-          <Route exact path={R.PRIVATE_ITEM_LIST} >
-            <PrivateItemList />
-          </Route>          
+          <Route exact path={R.PRIVATE_ITEM} component={PrivateItem} />
 
 
           { /* dont use "exact" on private routes, because PrivateHome is its own router component, it needs to handle routes below itself */ }
-          <Route path={R.PRIVATE_HOME_ROUTE}>
-            <PrivateHome  />
-          </Route>
+          <Route path={R.PRIVATE_HOME_ROUTE} component={PrivateHome} />
 
+          <Route path={R.AUTH_ROUTE} component={PrivateHome} />
 
-
-
-          <Route path={R.PUBLIC_HOME_ROUTE} >
-            <PublicHome />
-          </Route>
-
-
+          <Route path={R.PUBLIC_HOME_ROUTE} component={PublicHome} />
 
         </Switch>
-      </div>
+
+      </>
     </Router>
   );
 }
 
+/* this way SignOut does not automatically get history, location, .. props from react router:
 
+          <Route exact path={R.SIGNOUT_ROUTE}>
+            <SignOut />
+          </Route>
+*/
 
 
 
@@ -157,7 +150,7 @@ import { setAuthStatus, setUnauthStatus } from './connectedHelpers/authHelper'
 
 /* this just got moved to psStore/AuthStore, still testing how well it works there
   WORKS
-  
+
   //////////////////////////////////////////////////////////////
   // FUNCTIONALITY TO AUTO-RENEW SESSIONS BEFORE THEY EXPIRE (SO SERVER-SENT-EVENTS ALWAYS HAVE A VALID JWT TOKEN)
   // maybe should put this somewhere else..
@@ -234,7 +227,7 @@ import { setAuthStatus, setUnauthStatus } from './connectedHelpers/authHelper'
   }, [auth])
 
 
-///////////////////////////////////////////////// END OF SESSION-RENEW FUNCTIONALITY // 
+///////////////////////////////////////////////// END OF SESSION-RENEW FUNCTIONALITY //
 
 
 

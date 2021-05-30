@@ -20,8 +20,8 @@ import SignUpForm from "./signUpFormAsync";
 import { R } from '../../routeNames'
 
 
+const SignUp = (props) => {
 
-const SignUp = function() {
   /*
   const {   confirmUserModalOpened,      // boolean
             setConfirmUserModalOpened,  // sets confirmationCodeModal to true/false
@@ -31,7 +31,7 @@ const SignUp = function() {
 
             //auth,
         } = React.useContext(authContext)
-    
+
         /*
 /*
   if (auth.authenticated) {
@@ -40,7 +40,7 @@ const SignUp = function() {
 */
   return (
       <>
-{/*      
+{/*
         <GlobalModalContainer
           toggleModal={() => setConfirmUserModalOpened(false)}
           title="Please Check Your Phone's SMS"
@@ -56,8 +56,8 @@ const SignUp = function() {
         />
 
         <SignUpForm />
-*/}      
-        <SignUpForm />  
+*/}
+        <SignUpForm {...props} />
       </>
   )
 }

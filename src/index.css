@@ -29,6 +29,35 @@ code {
 }
 
 
+@keyframes fadeInOpacity {
+  0% {
+      opacity: 0;
+  }
+  100% {
+      opacity: 1;
+  }
+}
+.fadeInOnly {
+  animation-name: fadeInOpacity;
+  animation-duration: 0.5s;
+}
+
+
+@keyframes fadeOutOpacity {
+  0% {
+      opacity: 1;
+  }
+  100% {
+      opacity: 0;
+  }
+}
+.fadeOutOnly {
+  animation-name: fadeOutOpacity;
+  animation-duration: 0.5s;
+}
+
+
+
 
 @keyframes fadeInDownReverse {
   0% {
@@ -40,10 +69,12 @@ code {
       transform: translateY(-1.25em);
   }
 }
+
 .fadeDownReverse {
   animation-name: fadeInDownReverse;
   animation-duration: 0.3s;
 }
+
 
 
 
@@ -63,11 +94,29 @@ code {
 }
 
 .loader {
-  border: 16px solid #f3f3f3; /* Light grey */
+  border: 16px solid #ffffff; /*#f3f3f3;*/ /* Light grey */
   border-top: 16px solid #3498db; /* Blue */
   border-radius: 50%;
   width: 3em;
   height: 3em;
+  animation: spin 2s linear infinite;
+}
+
+.loader-mini {
+  border: 6px solid #ffffff; /*#f3f3f3;*/ /* Light grey */
+  border-top: 6px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 1em;
+  height: 1em;
+  animation: spin 2s linear infinite;
+}
+
+.loader-supermini {
+  border: 5px solid #ffffff; /*#f3f3f3;*/ /* Light grey */
+  border-top: 5px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: .3em;
+  height: .3em;
   animation: spin 2s linear infinite;
 }
 
@@ -115,14 +164,12 @@ code {
 
   -webkit-transition: opacity 0.5s linear;
   -moz-transition: opacity 0.5s linear;
-  transition: opacity 0.5s linear;  
+  transition: opacity 0.5s linear;
 }
 
 .hidden {
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s 0.5s, opacity 0.5s linear;
-  
+
 }
-
-

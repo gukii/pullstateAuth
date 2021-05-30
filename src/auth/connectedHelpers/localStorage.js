@@ -4,8 +4,9 @@
 
 export const USER_AUTH_KEY = "UserAuth";
 
-
-
+//
+// !! stores the complete cognito auth data to localstorage (not safe..!!!)
+//
 
 export const getStoredUserAuth = function({ log='', emptyObj=null }) {
 
@@ -58,7 +59,7 @@ export const getStoredUsername = function() {
   if (authObj === null || authObj.username === null || authObj.username === undefined || authObj.username.length < 1) {
     console.log('!!! no username in localstorage.. to create cognito user for session renewal..')
     return null
-  } 
+  }
   console.log('getStoredUsername:', authObj.username)
 
   return authObj.username

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'
 import '../App.css';
 
 import withAuth from '../hoc/withAuth'
@@ -6,6 +6,17 @@ import withAuth from '../hoc/withAuth'
 
 
 const PrivateItem = props => {
+
+  const [isMounted, setIsMounted] = useState(false)
+  // trying to fix memory leak complaint
+  useEffect( ()=> {
+    setIsMounted(true)
+    return () => setIsMounted(false)
+  }, [] )
+  // if (!isMounted) return <div>withAuth is not mounted..</div>
+
+  if (!isMounted) return <div>withAuth is not mounted..</div>
+
 
   return (
     <div className="App">

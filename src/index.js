@@ -4,12 +4,27 @@ import './index.css';
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 
+
+// Async Actions of React Pullstate trigger warnings, which can be turned of by removing React.StrictMode
+// https://github.com/lostpebble/pullstate/issues/60
+// this seems to be fixed with the newest version of PullState
+
 ReactDOM.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>,
   document.getElementById('root')
 );
+
+
+
+/*
+ReactDOM.render(
+  <App />,
+  document.getElementById('root')
+);
+*/
+
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
