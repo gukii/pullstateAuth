@@ -21,6 +21,12 @@ general functionaly is there, some corner cases might need testing.
 
 ### notes:
 
+set environment variables in .env or .env.local for AWS cognito details:
+
+REACT_APP_COGNITO_USER_POOL_ID
+REACT_APP_COGNITO_CLIENT_ID
+REACT_APP_COGNITO_USER_POOL_REGION (not really used yet)
+
 cognito session gets auto-renewed before it exprires, settings in:
 /auth/cognito/config.js
 
