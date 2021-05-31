@@ -15,6 +15,10 @@ import { resetStoredUserAuth } from '../../connectedHelpers/localStorage'
 import resendConfirmation from '../../cognito/resendConfirmation'
 
 
+// prompts the user for a confirmation code
+// sends the code to cognito
+// and returns the result / failure as a promise
+
 
 export async function confirmSignUpAsync({ cognitoUser=null, username=null, showError=(e)=>console.log(e), setLoading=(e)=>console.log('loading set:',e), log='' }) {
 
@@ -43,16 +47,20 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
 
 
-        //const _cognitoUser = cognitoUser || await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
+        //const awsCognitoUser = cognitoUser || await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
         //
         // maybe don t have to "await" here..
-        const _cognitoUser = await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
+        // hit the aws cognito api to get the current, active cognitoUser object.
+        const awsCognitoUser = await connNewCognitoUser({ setUnauthStatus, username, log:"for confirmSignUpAsync" })
 
-        if (_cognitoUser === null) {
+        if (awsCognitoUser === null) {
             doFailure("ERROR ConfirmationCodeForm, confirmation code flow failure, also no cognitoUser" )
         }
 
 
+        //
+        // why not use awsCognitoUser here???
+        //
         const resUsername =  cognitoUser.username || cognitoUser.user.username || null
         //const resUserId = cognitoUser.userSub
 
@@ -63,7 +71,7 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
 
         // needs to be in a try() catch(e)...
-        const confirmationCode = await psDialogAsync({
+        const confirmationCode = await psPromptAsync({
             component: SimplePrompt,
             title:"Enter Confirmation Code",
             text:"Your account is not yet confirmed. \n\nWe have sent you a confirmation code via email / sms.",
@@ -75,13 +83,13 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
         })
 
 
-        console.log('cognitoUser:', _cognitoUser)
+        console.log('cognitoUser:', awsCognitoUser)
         console.log('entered confirmationCode:', confirmationCode)
 
 
         if (confirmationCode === null || confirmationCode === undefined || confirmationCode.length === 0) {
             //alert("Confirmation code not entered")
-            await psDialogAsync({
+            await psPromptAsync({
                 component: SimpleDialog,
                 title:"Confirmation Code not entered",
                 text:"User sign in not possible. Try again next time.",
@@ -99,7 +107,7 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
             setLoading(true)
 
-            const result = await confirmCognitoUserAsync(_cognitoUser, confirmationCode)
+            const result = await confirmCognitoUserAsync(awsCognitoUser, confirmationCode)
             console.log('confirmCognitoUserAsync result:', result)
 
 
@@ -145,7 +153,8 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
                     await psPromptAsync({
                         component: SimpleDialog,
-                        title:"Confirmation code was not correct.",
+                        title:"Error",
+                        text:"Confirmation code was not correct.",
                         submitLabel:"Ok",
                         rejectVal:"",
                         alwaysResolve: true
@@ -158,8 +167,8 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
                     const res = await psPromptAsync({
                         component: SimpleDialog,
-                        title:"Confirmation Code Expired",
-                        text:"Please request a new confirmation code.",
+                        title:"Error",
+                        text:"Confirmation Code Expired \nPlease request a new confirmation code.",
                         submitLabel:"Request new code",
                         cancelLabel:"Cancel",
                         rejectVal:"",
@@ -171,13 +180,13 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
                         try {
                             setLoading(true)
-                            await resendConfirmation(_cognitoUser)
+                            await resendConfirmation(awsCognitoUser)
 
                             setLoading(false)
                             await psPromptAsync({
                                 component: SimpleDialog,
-                                title:"New confirmation was sent",
-                                text:"Check your email or sms in 2-3 minutes",
+                                title:"Attention",
+                                text:"New code was sent. \nCheck your email or sms in 2-3 minutes",
                                 submitLabel:"Ok",
                                 rejectVal:"",
                                 alwaysResolve: true
@@ -203,8 +212,8 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
                     await psPromptAsync({
                         component: SimpleDialog,
-                        title:"Confirmation code expired",
-                        text: "Request a new code",
+                        title:"Error",
+                        text: "Confirmation code expired.\nRequest a new code",
                         submitLabel:"Ok",
                         rejectVal:"",
                         alwaysResolve: true
@@ -215,6 +224,16 @@ export async function confirmSignUpAsync({ cognitoUser=null, username=null, show
 
                 case 'CodeDeliveryFailureException':
 
+                    await psPromptAsync({
+                        component: SimpleDialog,
+                        title:"Error",
+                        text: "Code Delivery failed.\n Try again in a few minutes..",
+                        submitLabel:"Ok",
+                        rejectVal:"",
+                        alwaysResolve: true
+                    })
+                    doFailure("Code Delivery failed, try again in a few minutes." )
+                    break
 
                 default:
                     if (JSON.stringify(e) !== '{}') {

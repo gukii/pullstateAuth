@@ -7,24 +7,28 @@ import { getUserPool } from "../cognito/config";
 import { getStoredUsername } from "./localStorage";
 
 
-// gets username from 
+// gets username from "username" prop or stored (on localstorage) username (without hitting aws api)
+// clear user auth data, if there s no username
 
 export function connGetCognitoUsername({ setUnauthStatus, username=null, log="" }) {
 
   if (log.length > 0) console.log(`connGetCognitoUsername, log: ${log}`)
 
 
-  const _username = username || getStoredUsername()
-  console.log(`>> connGetCognitoUsername username:${username}, _username:${_username}`)
-  if (_username === null) {
+  const knownUsername = username || getStoredUsername()
+  console.log(`>> connGetCognitoUsername username:${username}, knownUsername:${knownUsername}`)
+  if (knownUsername === null) {
     setUnauthStatus({ keepUsername: true, log: "connGetCognitoUsername, username is null" })
     return null
   }
 
-  return _username
+  return knownUsername
 }
 
 
+
+// get current active congito user from AWS.
+// if there s no active cognito user, clear user auth data.
 
 export async function connNewCognitoUser({ setUnauthStatus, username=null, log="" }) {
 
@@ -35,7 +39,7 @@ export async function connNewCognitoUser({ setUnauthStatus, username=null, log="
           return
         }
 
-        // could do: setUsername(_username)
+        // could do: setUsername(knownUsername)
 
         console.log('>> connNewCognitoUser: username:', username)   // has no value..
 
@@ -45,14 +49,14 @@ export async function connNewCognitoUser({ setUnauthStatus, username=null, log="
           Pool:  getUserPool(),
         }
 
-        const _cognitoUser = new CognitoUser(userData);
-        if (_cognitoUser === null) {
+        const awsCognitoUser = new CognitoUser(userData);
+        if (awsCognitoUser === null) {
           console.log('!!! connNewCognitoUser: ERROR couldnt get cognitoUser, returning early..')
           setUnauthStatus({ keepUsername: true, log: "connNewCognitoUser, cognitoUser error" })
           return null
         }
 
-        console.log('connNewCognitoUser successful:', _cognitoUser)
+        console.log('connNewCognitoUser successful:', awsCognitoUser)
 
-        return _cognitoUser
+        return awsCognitoUser
 }

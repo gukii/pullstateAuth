@@ -75,7 +75,11 @@ const SignInFormAsync = function( props ) {
   const [ formUsername, setFormUsername] = useState("");
 
   const [ password, setPassword] = useState("");
+  const [ code, setCode] = useState("");
+
   const [ loading, setLoading] = useState(false);
+  const [ confirming, setConfirming] = useState(false); // for showing input field of cognito confirmation code
+
   const { error, showError } = useErrorHandler(null);
 
   // heavy lifting is done with this hook:
@@ -230,23 +234,20 @@ const SignInFormAsync = function( props ) {
 
         <br />
 
-        {
+        { confirming &&
 
-            <div className="fullFormDiv">
-                <label className="fullFomLabel" htmlFor="password">
-                    Password:&nbsp;
+            <div className="fullFormDiv" style={{ marginBottom:"1em" }}>
+                <label className="fullFomLabel" htmlFor="code">
+                    Confirmation code:&nbsp;
                 </label>
                 <input
                   type="password"
-                  name="password"
-                  value={password}
-                  id="password"
-                  onChange={e => setPassword(e.target.value)}
+                  name="code"
+                  value={code}
+                  id="code"
+                  onChange={e => setCode(e.target.value)}
                 />
             </div>
-
-
-            <br />
 
         }
 
